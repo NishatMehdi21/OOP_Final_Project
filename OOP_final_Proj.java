@@ -170,8 +170,8 @@ class Motorcycle extends Vehicle{
 public class OOP_final_Proj {
     
     public static void main(String[] args) {
-        // Car c1 = new Car("Honda", "Civic", 9.0, 8.0, 6.0,7.0,true);
-        // c1.displayDetails();
+        Car c1 = new Car("Honda", "Civic", 9.0, 8.0, 6.0,7.0,true);
+        c1.displayDetails();
         Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 10,9,8,10,8);
         M1.checkStatus();
         M1.displayDetails();
