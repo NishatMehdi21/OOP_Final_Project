@@ -53,14 +53,14 @@ abstract class Vehicle{
     public abstract void displayDetails();
 
     // extra method hai for engine health (Rakna howa to rakh lena)
-    public void checkStatus() {
+    public String checkStatus() {
         if (engine.getHealth() <= 0) {
             isBroken = true;
-            System.out.println("Vehicle is BROKEN"); 
+            return "Vehicle is BROKEN";
         } else if (engine.getHealth() < 30) {
-            System.out.println("WARNING: Engine Low"); 
+            return "WARNING: Engine Low";
         } else {
-            System.out.println("Engine is Healthy");
+            return "Vehicle is Healthy";
         }
     }
     // same here
