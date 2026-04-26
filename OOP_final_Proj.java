@@ -36,7 +36,7 @@ abstract class Vehicle{
     protected Boolean isBroken;
     protected Engine engine;
 
-    public Vehicle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension){
+    public Vehicle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, int capacity, int health){
         this.make = make;
         this.model = model;
         this.oilLevel = oilLevel;
@@ -45,12 +45,14 @@ abstract class Vehicle{
         this.suspension = suspension;
 
         this.isBroken = false;
-        this.engine = new Engine();
+        this.engine = new Engine(capacity, health);
     }
 
     // main abstract methods
     public abstract void showHealth();
     public abstract void displayDetails();
+    public abstract double CalculateScore();
+
 
     // extra method hai for engine health (Rakna howa to rakh lena)
     public void checkStatus() {
@@ -110,8 +112,8 @@ abstract class Vehicle{
 class Car extends Vehicle{
     private boolean HasAC;
 
-    Car(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, boolean HasAC){
-        super(make,model,oilLevel, airPressure,tyres, suspension);
+    Car(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, boolean HasAC, int capacity, int health){
+        super(make,model,oilLevel, airPressure,tyres, suspension, capacity, health);
         this.HasAC = HasAC;
     }
 
@@ -121,6 +123,7 @@ class Car extends Vehicle{
         System.out.println("============================");
         System.out.println("Make: "+make);
         System.out.println("Model: "+model);
+        System.out.println("Engine Power: "+ engine.getCapacity()+"cc");
         System.out.println("Air Conditioner Variant: "+ HasAC);
         System.out.println("---------------------------");
         showHealth();
@@ -135,13 +138,22 @@ class Car extends Vehicle{
         System.out.println("Suspension Health: "+suspension);
 
     }
+
+    public double CalculateScore() {
+        return (engine.getHealth() / 100.0 * 50) +  // Max 50
+           (oilLevel / 10.0 * 20) +             // Max 20
+           (tyres / 10.0 * 10) +                // Max 10
+           (suspension / 10.0 * 10) +           // Max 10
+           (airPressure / 10.0 * 10);           // Max 10
+           // Total Max = 100
+}
 }
 
 class Motorcycle extends Vehicle{
     private double chainSprocketHealth;
 
-    Motorcycle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, double chainSprocketHealth){
-        super(make, model, oilLevel, airPressure, tyres, suspension);
+    Motorcycle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, double chainSprocketHealth, int engineCapacity, int EngineHealth){
+        super(make, model, oilLevel, airPressure, tyres, suspension, engineCapacity, EngineHealth);
         this.chainSprocketHealth= chainSprocketHealth;
     }
     public void displayDetails(){
@@ -150,6 +162,7 @@ class Motorcycle extends Vehicle{
         System.out.println("============================");
         System.out.println("Make: "+make);
         System.out.println("Model: "+model);
+        System.out.println("Engine Power: "+ engine.getCapacity()+"cc");
         System.out.println("---------------------------");
         showHealth();
     }
@@ -164,6 +177,16 @@ class Motorcycle extends Vehicle{
         System.out.println("Chain-Sprocket Health: "+ chainSprocketHealth);
 
     }
+
+    public double CalculateScore() {
+        return (engine.getHealth() / 100.0 * 40) +      // Max 40 pointa for Engine
+           (oilLevel / 10.0 * 15) +                 // Max 15
+           (tyres / 10.0 * 15) +                    // Max 15
+           (suspension / 10.0 * 10) +               // Max 10
+           (airPressure / 10.0 * 10) +              // Max 10
+           (chainSprocketHealth / 10.0 * 10);       // Max 10
+           // Total Max = 100
+}
 
 }
 class Trip{
@@ -180,10 +203,33 @@ class Trip{
         this.vehicle = vehicle;
     }
 
-    public void getAdvice() {
-     
+    public void showDetails(){
+        System.out.println("=========================");
+        System.out.println("      TRIP SUMMARY");
+        System.out.println("=========================");
+        System.out.println("Total Distance: "+distance);
+        System.out.println("Terrain: "+terrain);
+        System.out.println("Vehicle Used: "+ vehicle.getModel());
+        System.out.println();
     }
 
+    public void getAdvice() {
+        double score = vehicle.CalculateScore();
+        if (score>=90){
+            System.out.println("The Overall Vehicle Score is " + score+ "/100.\n Your Vehicle: " + vehicle.getModel()+ " is in good condition and ready for the trip.");
+        }
+        else if(score>=80){
+            System.out.println("The Overall Vehicle Score is " + score+ "/100.\n You are Advised to check necessary parts like engine and oil level before begining you trip");
+        }
+        else if(score>=70){
+            System.out.println("The Overall Vehicle Score is " + score+ "/100. \n you are advised to get a professional inspection before the trip");
+        }
+        else{
+            System.out.println("WARNING! The Overall Vehicle Score is " + score+ "/100.\n You Must Take Your Vehicle to a Workshop for Repairs");
+        }
+        
+             
+    }
 
     public Vehicle getVehicle() {
         return vehicle;
@@ -202,10 +248,15 @@ class Trip{
 public class OOP_final_Proj {
     
     public static void main(String[] args) {
-        Car c1 = new Car("Honda", "Civic", 9.0, 8.0, 6.0,7.0,true);
-        c1.displayDetails();
-        Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 10,9,8,10,8);
-        M1.checkStatus();
-        M1.displayDetails();
+        Car c1 = new Car("Honda", "Civic", 9.0, 8.0, 6.0,7.0,true,1800, 90);
+        //c1.displayDetails();
+        Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 10,10,10,10,10.0, 125, 90);
+        //M1.checkStatus();
+        //M1.displayDetails();
+
+        Trip Kashmir = new Trip(500, "Hilly", 100, M1);
+        Kashmir.showDetails();
+        Kashmir.getAdvice();
     }
+
 }
