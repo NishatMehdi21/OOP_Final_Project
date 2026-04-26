@@ -166,6 +166,38 @@ class Motorcycle extends Vehicle{
     }
 
 }
+class Trip{
+    private double distance;
+    private String terrain;
+    private double load;
+
+    private Vehicle vehicle;
+
+    public Trip(double distance, String terrain, double load, Vehicle vehicle) {
+        this.distance = distance;
+        this.terrain = terrain;
+        this.load = load;
+        this.vehicle = vehicle;
+    }
+
+    public void getAdvice() {
+     
+    }
+
+
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
+    public double getDistance() {
+        return distance;
+    }
+    public String getTerrain() {
+        return terrain;
+    }
+    public double getLoad() {
+        return load;
+    }
+}
 
 public class OOP_final_Proj {
     
