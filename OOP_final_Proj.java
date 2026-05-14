@@ -1,3 +1,8 @@
+interface Diagnosable {
+    public void calculateDamage();
+    public void generateReport();
+}
+
 class Engine{
     private int capacity;
     private int health;
