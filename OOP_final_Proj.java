@@ -172,7 +172,66 @@ class Car extends Vehicle implements Diagnosable{
            (airPressure / 10.0 * 5)+           // Max 5
            (brakes/10 *5);                      //Max 5
            // Total Max = 100
+    }
 }
+
+class Truck extends Vehicle implements Diagnosable{
+    private double loadCapacity;
+
+    Truck(String make, String model, double brakes, double oilLevel, double airPressure, double tyres, double suspension, int capacity, int health, double loadCapacity){
+        super(make,model,oilLevel, airPressure,tyres, suspension, capacity, health, brakes);
+        this.loadCapacity = loadCapacity;
+    }
+
+    public double calculateDamage(){
+        return (100-CalculateScore());
+    }
+
+    public String generateReport(){
+        return "--------Truck Health Report--------\n"+
+        "Overall Score: " + CalculateScore()+ "\n"+
+        "Total Damage: " + calculateDamage()+ "\n"+
+        "Engine Health: "+ engine.getHealth()+ "\n"+
+        "Oil Level: " + oilLevel+ "\n"+
+        "Tyre Health: " + tyres+ "\n"+
+        "Brake Health: "+ brakes +"\n"+
+        "Suspension "+ suspension+ "\n"+
+        "Load Capacity: " + loadCapacity; 
+
+    }
+
+
+    public void displayDetails(){
+        System.out.println("============================");
+        System.out.println("TRUCK INFORMATION");
+        System.out.println("============================");
+        System.out.println("Make: "+make);
+        System.out.println("Model: "+model);
+        System.out.println("Engine Power: "+ engine.getCapacity()+"cc");
+        System.out.println("Load Capacity in Kg: "+ loadCapacity);
+        System.out.println("---------------------------");
+        showHealth();
+    }
+
+    public void showHealth(){
+        System.out.println("TRUCK HEALTH ANALYTICS");
+        System.out.println("------------------------");
+        System.out.println("Oil Level: "+oilLevel);
+        System.out.println("Air Pressure: "+airPressure);
+        System.out.println("Tyre Health: "+ tyres);
+        System.out.println("Suspension Health: "+suspension);
+
+    }
+
+    public double CalculateScore() {
+        return (engine.getHealth() / 100.0 * 50) +  // Max 50
+           (oilLevel / 10.0 * 20) +             // Max 20
+           (tyres / 10.0 * 10) +                // Max 10
+           (suspension / 10.0 * 10) +           // Max 10
+           (airPressure / 10.0 * 5)+           // Max 5
+           (brakes/10 *5);                      //Max 5
+           // Total Max = 100
+    }
 }
 
 class Motorcycle extends Vehicle implements Diagnosable{
@@ -229,9 +288,9 @@ class Motorcycle extends Vehicle implements Diagnosable{
            (chainSprocketHealth / 10.0 * 10)+       // Max 10
            (brakes /10 * 5);                           //Max 5
            // Total Max = 100
+    }
 }
 
-}
 class Trip{
     private double distance;
     private String terrain;
