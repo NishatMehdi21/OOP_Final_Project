@@ -1,6 +1,6 @@
 interface Diagnosable {
-    public void calculateDamage();
-    public void generateReport();
+    public double calculateDamage();
+    public String generateReport();
 }
 
 class Engine{
@@ -37,17 +37,19 @@ abstract class Vehicle{
     protected double airPressure;
     protected double tyres;
     protected double suspension;
+    protected double brakes;
 
     protected Boolean isBroken;
     protected Engine engine;
 
-    public Vehicle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, int capacity, int health){
+    public Vehicle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, int capacity, int health, double brakes){
         this.make = make;
         this.model = model;
         this.oilLevel = oilLevel;
         this.airPressure = airPressure;
         this.tyres = tyres;
         this.suspension = suspension;
+        this.brakes = brakes;
 
         this.isBroken = false;
         this.engine = new Engine(capacity, health);
@@ -114,13 +116,31 @@ abstract class Vehicle{
     }
 }
 
-class Car extends Vehicle{
+class Car extends Vehicle implements Diagnosable{
     private boolean HasAC;
 
-    Car(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, boolean HasAC, int capacity, int health){
-        super(make,model,oilLevel, airPressure,tyres, suspension, capacity, health);
+    Car(String make, String model, double brakes, double oilLevel, double airPressure, double tyres, double suspension, boolean HasAC, int capacity, int health){
+        super(make,model,oilLevel, airPressure,tyres, suspension, capacity, health, brakes);
         this.HasAC = HasAC;
     }
+
+    public double calculateDamage(){
+        return (100-CalculateScore());
+    }
+
+    public String generateReport(){
+        return "--------Car Health Report--------\n"+
+        "Overall Score: " + CalculateScore()+ "\n"+
+        "Total Damage: " + calculateDamage()+ "\n"+
+        "Engine Health: "+ engine.getHealth()+ "\n"+
+        "Oil Level: " + oilLevel+ "\n"+
+        "Tyre Health: " + tyres+ "\n"+
+        "Brake Health: "+ brakes +"\n"+
+        "Suspension "+ suspension+ "\n"+
+        "Has Ac: " + HasAC; 
+
+    }
+
 
     public void displayDetails(){
         System.out.println("============================");
@@ -149,17 +169,34 @@ class Car extends Vehicle{
            (oilLevel / 10.0 * 20) +             // Max 20
            (tyres / 10.0 * 10) +                // Max 10
            (suspension / 10.0 * 10) +           // Max 10
-           (airPressure / 10.0 * 10);           // Max 10
+           (airPressure / 10.0 * 5)+           // Max 5
+           (brakes/10 *5);                      //Max 5
            // Total Max = 100
 }
 }
 
-class Motorcycle extends Vehicle{
+class Motorcycle extends Vehicle implements Diagnosable{
     private double chainSprocketHealth;
 
-    Motorcycle(String make, String model, double oilLevel, double airPressure, double tyres, double suspension, double chainSprocketHealth, int engineCapacity, int EngineHealth){
-        super(make, model, oilLevel, airPressure, tyres, suspension, engineCapacity, EngineHealth);
+    Motorcycle(String make, String model,double brakes, double oilLevel, double airPressure, double tyres, double suspension, double chainSprocketHealth, int engineCapacity, int EngineHealth){
+        super(make, model, oilLevel, airPressure, tyres, suspension, engineCapacity, EngineHealth, brakes);
         this.chainSprocketHealth= chainSprocketHealth;
+    }
+
+    public double calculateDamage(){
+        return (100-CalculateScore());
+    }
+
+    public String generateReport(){
+        return "--------Car Health Report--------\n"+
+        "Overall Score: " + CalculateScore()+ "\n"+
+        "Engine Health: "+ engine.getHealth()+"\n"+
+        "Oil Level: " + oilLevel+"\n"+
+        "Tyre Health: " + tyres+"\n"+
+        "Brake Health: "+ brakes +"\n"+
+        "Suspension "+ suspension+"\n"+
+        "Chain Sprocket Health: " + chainSprocketHealth; 
+
     }
     public void displayDetails(){
         System.out.println("============================");
@@ -188,8 +225,9 @@ class Motorcycle extends Vehicle{
            (oilLevel / 10.0 * 15) +                 // Max 15
            (tyres / 10.0 * 15) +                    // Max 15
            (suspension / 10.0 * 10) +               // Max 10
-           (airPressure / 10.0 * 10) +              // Max 10
-           (chainSprocketHealth / 10.0 * 10);       // Max 10
+           (airPressure / 10.0 * 5) +              // Max 5
+           (chainSprocketHealth / 10.0 * 10)+       // Max 10
+           (brakes /10 * 5);                           //Max 5
            // Total Max = 100
 }
 
@@ -253,9 +291,9 @@ class Trip{
 public class OOP_final_Proj {
     
     public static void main(String[] args) {
-        Car c1 = new Car("Honda", "Civic", 9.0, 8.0, 6.0,7.0,true,1800, 90);
+        Car c1 = new Car("Honda", "Civic", 10.0,9.0, 8.0, 6.0,7.0,true,1800, 90);
         //c1.displayDetails();
-        Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 10,10,10,10,10.0, 125, 90);
+        Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 8.0,10,10,10,10,10.0, 125, 90);
         //M1.checkStatus();
         //M1.displayDetails();
 
