@@ -291,6 +291,34 @@ class Motorcycle extends Vehicle implements Diagnosable{
     }
 }
 
+class DriverBehavior{
+
+    private boolean hardBraking;
+    private boolean overspeeding;
+    private boolean aggresiveDriving;
+    private boolean longDrivingHours;
+
+    DriverBehavior(boolean hardBraking, boolean overspeeding, boolean aggresiveDriving, boolean longDrivingHours){
+        this.hardBraking = hardBraking;
+        this.overspeeding = overspeeding;
+        this.aggresiveDriving = aggresiveDriving;
+        this.longDrivingHours = longDrivingHours;
+    }
+
+    public boolean isHardBraking() {
+        return hardBraking;
+    }
+    public boolean isOverspeeding() {
+        return overspeeding;
+    }
+    public boolean isAggresiveDriving() {
+        return aggresiveDriving;
+    }
+    public boolean isLongDrivingHours() {
+        return longDrivingHours;
+    }
+}
+
 class Trip{
     private double distance;
     private String terrain;
