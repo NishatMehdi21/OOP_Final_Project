@@ -325,12 +325,14 @@ class Trip{
     private double load;
 
     private Vehicle vehicle;
+    private DriverBehavior behavior;
 
-    public Trip(double distance, String terrain, double load, Vehicle vehicle) {
+    public Trip(double distance, String terrain, double load, Vehicle vehicle, DriverBehavior behavior) {
         this.distance = distance;
         this.terrain = terrain;
         this.load = load;
         this.vehicle = vehicle;
+        this.behavior = behavior;
     }
 
     public void showDetails(){
@@ -340,25 +342,19 @@ class Trip{
         System.out.println("Total Distance: "+distance);
         System.out.println("Terrain: "+terrain);
         System.out.println("Vehicle Used: "+ vehicle.getModel());
+        if (behavior.isAggresiveDriving()){
+            System.out.println("Aggresive Driving Detected");
+        }
+        if (behavior.isHardBraking()){
+            System.out.println("Hard Braking Detected");
+        }
+        if (behavior.isLongDrivingHours()){
+            System.out.println("Long Driving Hours Detected");
+        }
+        if (behavior.isOverspeeding()){
+            System.out.println("Overspeeding Detected");
+        }
         System.out.println();
-    }
-
-    public void getAdvice() {
-        double score = vehicle.CalculateScore();
-        if (score>=90){
-            System.out.println("The Overall Vehicle Score is " + score+ "/100.\n Your Vehicle: " + vehicle.getModel()+ " is in good condition and ready for the trip.");
-        }
-        else if(score>=80){
-            System.out.println("The Overall Vehicle Score is " + score+ "/100.\n You are Advised to check necessary parts like engine and oil level before begining you trip");
-        }
-        else if(score>=70){
-            System.out.println("The Overall Vehicle Score is " + score+ "/100. \n you are advised to get a professional inspection before the trip");
-        }
-        else{
-            System.out.println("WARNING! The Overall Vehicle Score is " + score+ "/100.\n You Must Take Your Vehicle to a Workshop for Repairs");
-        }
-        
-             
     }
 
     public Vehicle getVehicle() {
@@ -373,6 +369,27 @@ class Trip{
     public double getLoad() {
         return load;
     }
+    public DriverBehavior getDriverBehavior(){
+        return behavior;
+    }
+}
+
+class User{
+
+    private String username;
+    private String password;
+
+    User(String username, String password){
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername(){ 
+        return username;
+    }
+    public String getPassword(){
+        return password;
+    }
 }
 
 public class OOP_final_Proj {
@@ -383,10 +400,16 @@ public class OOP_final_Proj {
         Motorcycle M1 = new Motorcycle("Yamaha", "YBR-G", 8.0,10,10,10,10,10.0, 125, 90);
         //M1.checkStatus();
         //M1.displayDetails();
+        Truck t1 = new Truck("Volvo", "FH16 Aero", 7.0, 10.0, 9.5, 10, 10, 10, 17000, 50000);
+        //t1.checkStatus();
+        //t1.displayDetails();
 
-        Trip Kashmir = new Trip(500, "Hilly", 100, M1);
+        DriverBehavior db = new DriverBehavior(false, true, false, false);
+
+        Trip Kashmir = new Trip(500, "Hilly", 100, M1, db);
         Kashmir.showDetails();
-        Kashmir.getAdvice();
+
+        User u1 = new User("abc_123", "123@abc");
     }
 
 }
