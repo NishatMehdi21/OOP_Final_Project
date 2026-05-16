@@ -1,3 +1,4 @@
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 interface Diagnosable {
@@ -297,13 +298,13 @@ class DriverBehavior{
 
     private boolean hardBraking;
     private boolean overspeeding;
-    private boolean aggresiveDriving;
+    private boolean aggressiveDriving;
     private boolean longDrivingHours;
 
-    DriverBehavior(boolean hardBraking, boolean overspeeding, boolean aggresiveDriving, boolean longDrivingHours){
+    DriverBehavior(boolean hardBraking, boolean overspeeding, boolean aggressiveDriving, boolean longDrivingHours){
         this.hardBraking = hardBraking;
         this.overspeeding = overspeeding;
-        this.aggresiveDriving = aggresiveDriving;
+        this.aggressiveDriving = aggressiveDriving;
         this.longDrivingHours = longDrivingHours;
     }
 
@@ -313,8 +314,8 @@ class DriverBehavior{
     public boolean isOverspeeding() {
         return overspeeding;
     }
-    public boolean isAggresiveDriving() {
-        return aggresiveDriving;
+    public boolean isAggressiveDriving() {
+        return aggressiveDriving;
     }
     public boolean isLongDrivingHours() {
         return longDrivingHours;
@@ -344,8 +345,8 @@ class Trip{
         System.out.println("Total Distance: "+distance);
         System.out.println("Terrain: "+terrain);
         System.out.println("Vehicle Used: "+ vehicle.getModel());
-        if (behavior.isAggresiveDriving()){
-            System.out.println("Aggresive Driving Detected");
+        if (behavior.isAggressiveDriving()){
+            System.out.println("Aggressive Driving Detected");
         }
         if (behavior.isHardBraking()){
             System.out.println("Hard Braking Detected");
@@ -425,6 +426,121 @@ class VehicleManager{
 
 }
 
+class LoginManager{
+
+    private ArrayList<User> users;
+    private User currentUser;
+
+    LoginManager() {
+        users = new ArrayList<>();
+        currentUser = null;
+    }
+
+    public boolean register(String username, String password){
+        for(User u : users){
+            if(u.getUsername().equals(username)){
+                return false;
+            }
+        }
+        users.add(new User(username, password));
+                return true;
+    }
+
+    public boolean login(String username, String password){
+        for(User u : users){
+            if (u.getUsername().equals(username) && u.getPassword().equals(password)) {
+                currentUser = u;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void logout(){
+        currentUser = null;
+    }
+
+    public User getCurrentUser(){
+        return currentUser;
+    }
+
+    public ArrayList<User> getUsers(){
+        return users;
+    }
+
+    public void setUsers(ArrayList<User> users) {
+        this.users = users;
+    }
+
+}
+
+class AdviceManager{
+
+    public String getScoreAdvice(double score){
+        if (score >= 90){
+            return "Score: " + score + "/100\n✓ EXCELLENT — Vehicle is in peak condition. Safe for any trip.";
+        }
+        else if (score >= 80){
+            return "Score: " + score + "/100\n✓ GOOD — Minor checks recommended. Verify oil and tyre pressure before departure.";
+        }
+        else if (score >= 70){
+            return "Score: " + score + "/100\n⚠ MODERATE — Professional inspection recommended before this trip.";
+        }
+        else if (score >= 60){
+            return "Score: " + score + "/100\n⚠ CONCERNING — Avoid long trips. Service the vehicle soon.";
+        }
+        else
+            return "Score: " + score + "/100\n🔴 DANGEROUS — Do NOT take this trip. Immediate workshop visit required.";
+    }
+
+    public String getBehaviorWarnings(DriverBehavior behavior){
+
+        StringBuilder sb = new StringBuilder();
+        if (behavior.isHardBraking()){
+            sb.append("⚠ Hard braking: accelerates brake pad and tyre wear. Will reduce brake health over time.\n");
+        }
+        if (behavior.isOverspeeding()){
+            sb.append("⚠ Overspeeding: increases engine strain, fuel consumption, and accident risk on this terrain.\n");
+        }
+        if (behavior.isAggressiveDriving()){
+            sb.append("⚠ Aggressive driving: damages suspension and drivetrain. Reduce on hilly terrain.\n");
+        }
+        if (behavior.isLongDrivingHours()){
+            sb.append("⚠ Long driving hours: vehicle needs rest breaks. Check oil and temperature every 2 hours.\n");
+        }
+        if (sb.length() == 0){
+            sb.append("✓ No driver behavior concerns detected.");
+        }
+        return sb.toString();
+    }
+
+    public String getFullAdvice(Trip trip){
+
+        double score = trip.getVehicle().CalculateScore();
+        String vehicleAdvice = getScoreAdvice(score);
+        String behaviorAdvice = getBehaviorWarnings(trip.getDriverBehavior());
+
+        return vehicleAdvice + "\n\n" + behaviorAdvice;
+    }
+
+    public String getSummaryReport(Trip trip){
+
+        String dateTime = LocalDateTime.now().toString();
+        String advice = getFullAdvice(trip);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n===== VEHICLE TRIP REPORT =====\n\n");
+        sb.append("Generated: "+ dateTime + "\n\n");  
+        sb.append("Vehicle: " + trip.getVehicle().getMake() + " " + trip.getVehicle().getModel() + "\n");
+        sb.append("Distance: " + trip.getDistance() + "\n");
+        sb.append("Terrain: " + trip.getTerrain() + "\n");
+        sb.append("Load: " + trip.getLoad() + "\n\n");
+        sb.append("===== ADVICE =====\n" + advice);
+
+        return sb.toString();
+    }
+}
+
 public class OOP_final_Proj {
     
     public static void main(String[] args) {
@@ -437,9 +553,9 @@ public class OOP_final_Proj {
         //t1.checkStatus();
         //t1.displayDetails();
 
-        // DriverBehavior db = new DriverBehavior(false, true, false, false);
+        DriverBehavior db = new DriverBehavior(false, true, false, false);
         
-        // Trip Kashmir = new Trip(500, "Hilly", 100, M1, db);
+        Trip Kashmir = new Trip(500, "Hilly", 100, M1, db);
         // Kashmir.showDetails();
 
         VehicleManager Manager1 = new VehicleManager();
@@ -447,10 +563,18 @@ public class OOP_final_Proj {
         Manager1.addVehicle(M1);
         Manager1.addVehicle(t1);
         Manager1.displayAll();
-
         
+        User u1 = new User("abc_123", "123@abc");
 
-        // User u1 = new User("abc_123", "123@abc");
+        LoginManager LM1 = new LoginManager();
+        LM1.register("abc_123", "123@abc");
+        LM1.login("abc_123", "123@abc");
+        LM1.getCurrentUser();
+        LM1.getUsers();
+        LM1.logout();
+
+        AdviceManager AM1 =new AdviceManager();
+        System.out.println(AM1.getSummaryReport(Kashmir));
     }
 
 }
