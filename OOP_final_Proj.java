@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 interface Diagnosable {
     public double calculateDamage();
     public String generateReport();
@@ -392,6 +394,37 @@ class User{
     }
 }
 
+class VehicleManager{
+    private ArrayList<Vehicle> vehicles;
+
+    public VehicleManager(){
+        vehicles = new ArrayList<Vehicle>(); 
+    }
+
+    public void addVehicle(Vehicle vehicleObj){
+        vehicles.add(vehicleObj);
+    }
+
+    public void removeVehicle(int index){
+        try{
+            vehicles.remove(index);
+        }catch(ArrayIndexOutOfBoundsException e){
+            System.out.println("Invalid Array Index! Please Enter a Valid Index");
+        }
+    }
+
+    public ArrayList<Vehicle> getVehicles() {
+        return vehicles;
+    }    
+
+    public void displayAll(){
+        for (Vehicle vehicle : vehicles) {
+            vehicle.displayDetails();
+        }
+    }
+
+}
+
 public class OOP_final_Proj {
     
     public static void main(String[] args) {
@@ -404,12 +437,20 @@ public class OOP_final_Proj {
         //t1.checkStatus();
         //t1.displayDetails();
 
-        DriverBehavior db = new DriverBehavior(false, true, false, false);
+        // DriverBehavior db = new DriverBehavior(false, true, false, false);
+        
+        // Trip Kashmir = new Trip(500, "Hilly", 100, M1, db);
+        // Kashmir.showDetails();
 
-        Trip Kashmir = new Trip(500, "Hilly", 100, M1, db);
-        Kashmir.showDetails();
+        VehicleManager Manager1 = new VehicleManager();
+        Manager1.addVehicle(c1);
+        Manager1.addVehicle(M1);
+        Manager1.addVehicle(t1);
+        Manager1.displayAll();
 
-        User u1 = new User("abc_123", "123@abc");
+        
+
+        // User u1 = new User("abc_123", "123@abc");
     }
 
 }
