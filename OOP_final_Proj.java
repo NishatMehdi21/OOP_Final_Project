@@ -117,6 +117,15 @@ abstract class Vehicle{
     public void setSuspension(double suspension) {
         this.suspension = suspension;
     }
+    public double getBrakes() {
+        return brakes;
+    }
+    public Engine getEngine() {
+        return engine;
+    }
+    public boolean isBroken() {
+        return isBroken;
+    }
 }
 
 class Car extends Vehicle implements Diagnosable{
@@ -125,6 +134,10 @@ class Car extends Vehicle implements Diagnosable{
     Car(String make, String model, double brakes, double oilLevel, double airPressure, double tyres, double suspension, boolean HasAC, int capacity, int health){
         super(make,model,oilLevel, airPressure,tyres, suspension, capacity, health, brakes);
         this.HasAC = HasAC;
+    }
+
+    public boolean isHasAC() {
+        return HasAC;
     }
 
     public double calculateDamage(){
@@ -186,6 +199,10 @@ class Truck extends Vehicle implements Diagnosable{
         this.loadCapacity = loadCapacity;
     }
 
+    public double getLoadCapacity() {
+        return loadCapacity;
+    }
+
     public double calculateDamage(){
         return (100-CalculateScore());
     }
@@ -243,6 +260,10 @@ class Motorcycle extends Vehicle implements Diagnosable{
     Motorcycle(String make, String model,double brakes, double oilLevel, double airPressure, double tyres, double suspension, double chainSprocketHealth, int engineCapacity, int EngineHealth){
         super(make, model, oilLevel, airPressure, tyres, suspension, engineCapacity, EngineHealth, brakes);
         this.chainSprocketHealth= chainSprocketHealth;
+    }
+
+    public double getChainSprocketHealth() {
+        return chainSprocketHealth;
     }
 
     public double calculateDamage(){
