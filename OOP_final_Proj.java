@@ -1,5 +1,7 @@
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.io.*;
+import java.util.Scanner;
 
 interface Diagnosable {
     public double calculateDamage();
@@ -559,6 +561,169 @@ class AdviceManager{
         sb.append("===== ADVICE =====\n" + advice);
 
         return sb.toString();
+    }
+}
+
+class FileManager {
+ 
+    private static final String USERS_FILE    = "users.txt";
+    private static final String VEHICLES_FILE = "vehicles.txt";
+ 
+    // ==================== USERS ====================
+ 
+    public void saveUsers(ArrayList<User> users) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(USERS_FILE))) {
+            for (User u : users) {
+                bw.write(u.getUsername() + "," + u.getPassword());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving users: " + e.getMessage());
+        }
+    }
+ 
+    public ArrayList<User> loadUsers() {
+        ArrayList<User> users = new ArrayList<>();
+        File f = new File(USERS_FILE);
+        if (!f.exists()) return users;
+ 
+        try (Scanner sc = new Scanner(f)) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split(",");
+                if (parts.length == 2) {
+                    users.add(new User(parts[0], parts[1]));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading users: " + e.getMessage());
+        }
+        return users;
+    }
+ 
+    // ==================== VEHICLES ====================
+    // Format for CAR:
+    //   CAR,make,model,oilLevel,airPressure,tyres,suspension,brakes,engineCapacity,engineHealth,hasAC
+    // Format for MOTORCYCLE:
+    //   MOTORCYCLE,make,model,oilLevel,airPressure,tyres,suspension,brakes,engineCapacity,engineHealth,chainSprocketHealth
+    // Format for TRUCK:
+    //   TRUCK,make,model,oilLevel,airPressure,tyres,suspension,brakes,engineCapacity,engineHealth,loadCapacity
+ 
+    public void saveVehicles(ArrayList<Vehicle> vehicles) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(VEHICLES_FILE))) {
+            for (Vehicle v : vehicles) {
+                String line = "";
+ 
+                if (v instanceof Car) {
+                    Car c = (Car) v;
+                    line = "CAR," + v.getMake() + "," + v.getModel() + ","
+                         + v.getOilLevel() + "," + v.getAirPressure() + ","
+                         + v.getTyres() + "," + v.getSuspension() + ","
+                         + v.getBrakes() + ","
+                         + v.getEngine().getCapacity() + "," + v.getEngine().getHealth() + ","
+                         + c.isHasAC();
+ 
+                } else if (v instanceof Motorcycle) {
+                    Motorcycle m = (Motorcycle) v;
+                    line = "MOTORCYCLE," + v.getMake() + "," + v.getModel() + ","
+                         + v.getOilLevel() + "," + v.getAirPressure() + ","
+                         + v.getTyres() + "," + v.getSuspension() + ","
+                         + v.getBrakes() + ","
+                         + v.getEngine().getCapacity() + "," + v.getEngine().getHealth() + ","
+                         + m.getChainSprocketHealth();
+ 
+                } else if (v instanceof Truck) {
+                    Truck t = (Truck) v;
+                    line = "TRUCK," + v.getMake() + "," + v.getModel() + ","
+                         + v.getOilLevel() + "," + v.getAirPressure() + ","
+                         + v.getTyres() + "," + v.getSuspension() + ","
+                         + v.getBrakes() + ","
+                         + v.getEngine().getCapacity() + "," + v.getEngine().getHealth() + ","
+                         + t.getLoadCapacity();
+                }
+ 
+                if (!line.isEmpty()) {
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving vehicles: " + e.getMessage());
+        }
+    }
+ 
+    public ArrayList<Vehicle> loadVehicles() {
+        ArrayList<Vehicle> vehicles = new ArrayList<>();
+        File f = new File(VEHICLES_FILE);
+        if (!f.exists()) return vehicles;
+ 
+        try (Scanner sc = new Scanner(f)) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] p = line.split(",");
+ 
+                // p[0]=type, p[1]=make, p[2]=model,
+                // p[3]=oil, p[4]=air, p[5]=tyres, p[6]=suspension, p[7]=brakes,
+                // p[8]=engineCap, p[9]=engineHealth, p[10]=extraField
+ 
+                String type = p[0];
+ 
+                if (type.equals("CAR") && p.length >= 11) {
+                    vehicles.add(new Car(
+                        p[1], p[2],
+                        Double.parseDouble(p[7]),   // brakes
+                        Double.parseDouble(p[3]),   // oil
+                        Double.parseDouble(p[4]),   // air
+                        Double.parseDouble(p[5]),   // tyres
+                        Double.parseDouble(p[6]),   // suspension
+                        Boolean.parseBoolean(p[10]),// hasAC
+                        Integer.parseInt(p[8]),     // engineCapacity
+                        Integer.parseInt(p[9])      // engineHealth
+                    ));
+ 
+                } else if (type.equals("MOTORCYCLE") && p.length >= 11) {
+                    vehicles.add(new Motorcycle(
+                        p[1], p[2],
+                        Double.parseDouble(p[7]),   // brakes
+                        Double.parseDouble(p[3]),   // oil
+                        Double.parseDouble(p[4]),   // air
+                        Double.parseDouble(p[5]),   // tyres
+                        Double.parseDouble(p[6]),   // suspension
+                        Double.parseDouble(p[10]),  // chainSprocketHealth
+                        Integer.parseInt(p[8]),     // engineCapacity
+                        Integer.parseInt(p[9])      // engineHealth
+                    ));
+ 
+                } else if (type.equals("TRUCK") && p.length >= 11) {
+                    vehicles.add(new Truck(
+                        p[1], p[2],
+                        Double.parseDouble(p[7]),   // brakes
+                        Double.parseDouble(p[3]),   // oil
+                        Double.parseDouble(p[4]),   // air
+                        Double.parseDouble(p[5]),   // tyres
+                        Double.parseDouble(p[6]),   // suspension
+                        Integer.parseInt(p[8]),     // engineCapacity
+                        Integer.parseInt(p[9]),     // engineHealth
+                        Double.parseDouble(p[10])   // loadCapacity
+                    ));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading vehicles: " + e.getMessage());
+        }
+        return vehicles;
+    }
+ 
+    // ==================== REPORT ====================
+ 
+    public void saveReport(String content, String filename) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
+            bw.write(content);
+        } catch (IOException e) {
+            System.out.println("Error saving report: " + e.getMessage());
+        }
     }
 }
 
