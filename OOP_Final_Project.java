@@ -2,9 +2,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.io.*;
 import java.util.Scanner;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import javafx.application.Application;
+import javafx.geometry.*;
+import javafx.scene.*;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.*;
+import javafx.stage.Stage;
+import javafx.collections.*;
+import javafx.scene.control.cell.*;
 
 interface Diagnosable {
     public double calculateDamage();
@@ -873,613 +880,671 @@ class FileManager {
     }
 }
 
-class LoginPanel extends JPanel {
+class Theme {
+    static final String BASE       = "#1a1f2e";
+    static final String SURFACE    = "#242938";
+    static final String CARD       = "#2d3348";
+    static final String NAV        = "#1e2436";
+    static final String BORDER     = "#3a4060";
+    static final String TEXT       = "#e2e8f0";
+    static final String MUTED      = "#8892a4";
+    static final String ACCENT     = "#6c8ef7";
+    static final String GREEN      = "#2d6a4f";
+    static final String GREEN_TEXT = "#95d5b2";
+    static final String RED        = "#6b1f1f";
+    static final String RED_TEXT   = "#ffb3b3";
+    static final String PURPLE     = "#3d2d6e";
+    static final String PURPLE_TEXT= "#c4b5fd";
 
-    LoginPanel(CardLayout cardLayout, JPanel mainPanel, LoginManager loginManager, FileManager fileManager) {
+    static final String SCORE_GREEN_BG = "#1a3d2b";
+    static final String SCORE_GREEN_FG = "#09c457";
+    static final String SCORE_AMBER_BG = "#3d2e0a";
+    static final String SCORE_AMBER_FG = "#ffcf32";
+    static final String SCORE_RED_BG   = "#3d1515";
+    static final String SCORE_RED_FG   = "#f35151";
 
-        setLayout(new GridBagLayout());
+    static final String NAV_STYLE =
+        "-fx-background-color: " + NAV + ";" +
+        "-fx-padding: 10 16 10 16;" +
+        "-fx-border-color: " + BORDER + ";" +
+        "-fx-border-width: 0 0 1 0;";
 
-        // ---- Form container ----
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(60, 60, 140), 1),
-                        "MotoMetrics — Login"), BorderFactory.createEmptyBorder(10, 20, 15, 20)));
+    static final String INPUT_STYLE =
+        "-fx-background-color: " + CARD + ";" +
+        "-fx-border-color: " + BORDER + ";" +
+        "-fx-border-radius: 6;" +
+        "-fx-background-radius: 6;" +
+        "-fx-text-fill: " + TEXT + ";" +
+        "-fx-font-size: 13;" +
+        "-fx-prompt-text-fill: " + MUTED + ";";
 
-        form.setPreferredSize(new Dimension(400, 250));
-        form.setBackground(Color.WHITE);
+    static final String LABEL_STYLE =
+        "-fx-text-fill: " + TEXT + ";" +
+        "-fx-font-size: 13;";
 
-        // ---- Title ----
-        JLabel title = new JLabel("Vehicle Wear & Tear Simulation");
-        title.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        title.setForeground(Color.GRAY);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+    static String btn(String bg, String fg) {
+        return "-fx-background-color: " + bg + ";" +
+               "-fx-text-fill: " + fg + ";" +
+               "-fx-background-radius: 6;" +
+               "-fx-border-radius: 6;" +
+               "-fx-cursor: hand;" +
+               "-fx-padding: 7 18 7 18;" +
+               "-fx-font-size: 13;";
+    }
 
-        // ---- Fields ----
-        JTextField userField = new JTextField();
-        userField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        JPasswordField passField = new JPasswordField();
-        passField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+    static String ghostBtn() {
+        return "-fx-background-color: " + CARD + ";" +
+               "-fx-text-fill: " + MUTED + ";" +
+               "-fx-border-color: " + BORDER + ";" +
+               "-fx-border-width: 1;" +
+               "-fx-border-radius: 6;" +
+               "-fx-background-radius: 6;" +
+               "-fx-cursor: hand;" +
+               "-fx-padding: 7 18 7 18;" +
+               "-fx-font-size: 13;";
+    }
 
-        // ---- Error label ----
-        JLabel errorLabel = new JLabel(" ");
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    static String sectionLabel() {
+        return "-fx-font-size: 11;" +
+               "-fx-text-fill: " + ACCENT + ";" +
+               "-fx-font-weight: bold;";
+    }
+}
 
-        // ---- Buttons ----
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        btnRow.setBackground(Color.WHITE);
-        JButton loginBtn = makeButton("Login", new Color(60, 60, 140), Color.WHITE);
-        JButton regBtn   = makeButton("Register", Color.LIGHT_GRAY, Color.DARK_GRAY);
-        btnRow.add(loginBtn);
-        btnRow.add(regBtn);
+class SceneManager {
+    private Stage stage;
+    private LoginManager loginManager;
+    private VehicleManager vehicleManager;
+    private FileManager fileManager;
+    private AdviceManager adviceManager;
 
-        // ---- Assemble form ----
-        form.add(title);
-        form.add(Box.createVerticalStrut(12));
-        JLabel userLabel = new JLabel("Username");
-        userLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        form.add(userLabel);
-        form.add(Box.createVerticalStrut(4));
-        form.add(userField);
-        form.add(Box.createVerticalStrut(8));
-        JLabel passLabel = new JLabel("Password");
-        passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        form.add(passLabel);
-        form.add(Box.createVerticalStrut(4));
-        form.add(passField);
-        form.add(Box.createVerticalStrut(6));
-        form.add(errorLabel);
-        form.add(Box.createVerticalStrut(6));
-        form.add(btnRow);
+    SceneManager(Stage stage, LoginManager loginManager,
+                 VehicleManager vehicleManager, FileManager fileManager,
+                 AdviceManager adviceManager) {
+        this.stage         = stage;
+        this.loginManager  = loginManager;
+        this.vehicleManager= vehicleManager;
+        this.fileManager   = fileManager;
+        this.adviceManager = adviceManager;
+    }
 
-        add(form);
+    public void showSplash() {
+        SplashScreen splash = new SplashScreen(this);
+        stage.setScene(new Scene(splash, 780, 540));
+    }
+    public void showLogin() {
+        LoginPanel panel = new LoginPanel(this, loginManager, fileManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showRegister() {
+        RegisterPanel panel = new RegisterPanel(this, loginManager, fileManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showDashboard() {
+        DashboardPanel panel = new DashboardPanel(this, vehicleManager, loginManager, fileManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showAddVehicle() {
+        AddVehiclePanel panel = new AddVehiclePanel(this, vehicleManager, fileManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showVehicleDetails(Vehicle v) {
+        VehicleDetailsPanel panel = new VehicleDetailsPanel(this, fileManager, vehicleManager);
+        panel.loadVehicle(v);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showTrip() {
+        TripPanel panel = new TripPanel(this, vehicleManager, adviceManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+    public void showAdvice(Trip trip) {
+        AdvicePanel panel = new AdvicePanel(this, fileManager, vehicleManager);
+        panel.loadAdvice(trip, adviceManager);
+        stage.setScene(new Scene(panel, 780, 540));
+    }
+}
 
-        // ---- Actions ----
-        loginBtn.addActionListener(e -> {
+class SplashScreen extends StackPane {
+    SplashScreen(SceneManager sceneManager) {
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
+
+        try {
+            javafx.scene.image.Image logo = new javafx.scene.image.Image(
+                new java.io.FileInputStream("logo.png")
+            );
+            javafx.scene.image.ImageView logoView = new javafx.scene.image.ImageView(logo);
+            logoView.setFitWidth(320);
+            logoView.setPreserveRatio(true);
+
+            Label tagline = new Label("Starting up...");
+            tagline.setFont(Font.font("SansSerif", 13));
+            tagline.setTextFill(javafx.scene.paint.Color.web(Theme.MUTED));
+
+            VBox content = new VBox(16, logoView, tagline);
+            content.setAlignment(Pos.CENTER);
+            getChildren().add(content);
+
+        } catch (java.io.FileNotFoundException e) {
+            Label fallback = new Label("MotoMetrics");
+            fallback.setFont(Font.font("SansSerif", FontWeight.BOLD, 36));
+            fallback.setTextFill(javafx.scene.paint.Color.web(Theme.ACCENT));
+            getChildren().add(fallback);
+        }
+
+        javafx.animation.PauseTransition pause =
+            new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+        pause.setOnFinished(e -> sceneManager.showLogin());
+        pause.play();
+    }
+}
+
+class LoginPanel extends VBox {
+    LoginPanel(SceneManager sceneManager, LoginManager loginManager, FileManager fileManager) {
+        setAlignment(Pos.CENTER);
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
+
+        VBox form = new VBox(10);
+        form.setAlignment(Pos.CENTER_LEFT);
+        form.setPadding(new Insets(24, 32, 28, 32));
+        form.setMaxWidth(400);
+        form.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;"
+        );
+
+        Label appTitle = new Label("MotoMetrics — Login");
+        appTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: " + Theme.TEXT + ";");
+
+        Label subtitle = new Label("Vehicle Wear & Tear Simulation");
+        subtitle.setStyle("-fx-font-size: 12; -fx-text-fill: " + Theme.MUTED + ";");
+
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: " + Theme.BORDER + ";");
+
+        Label userLabel = new Label("Username");
+        userLabel.setStyle(Theme.LABEL_STYLE);
+        TextField userField = new TextField();
+        userField.setPromptText("Enter username");
+        userField.setMaxWidth(Double.MAX_VALUE);
+        userField.setStyle(Theme.INPUT_STYLE);
+
+        Label passLabel = new Label("Password");
+        passLabel.setStyle(Theme.LABEL_STYLE);
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Enter password");
+        passField.setMaxWidth(Double.MAX_VALUE);
+        passField.setStyle(Theme.INPUT_STYLE);
+
+        Label errorLabel = new Label(" ");
+        errorLabel.setStyle("-fx-text-fill: #f87171; -fx-font-size: 12;");
+
+        Button loginBtn = makeBtn("Login",    Theme.ACCENT, "#ffffff");
+        Button regBtn   = makeBtn("Register", Theme.CARD,   Theme.MUTED);
+        HBox btnRow = new HBox(10, loginBtn, regBtn);
+
+        form.getChildren().addAll(appTitle, subtitle, sep, userLabel, userField, passLabel, passField, errorLabel, btnRow);
+        getChildren().add(form);
+
+        loginBtn.setOnAction(e -> {
             String username = userField.getText().trim();
-            String password = new String(passField.getPassword()).trim();
-
-            if (username.isEmpty() || password.isEmpty()) {
-                errorLabel.setText("Please fill in all fields.");
-                return;
-            }
-
+            String password = passField.getText().trim();
+            if (username.isEmpty() || password.isEmpty()) { errorLabel.setText("Please fill in all fields."); return; }
             if (loginManager.login(username, password)) {
-                errorLabel.setText(" ");
-                userField.setText("");
-                passField.setText("");
-                // Refresh dashboard before switching
-                DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-                dash.refresh();
-                cardLayout.show(mainPanel, "DASHBOARD");
+                errorLabel.setText(" "); userField.clear(); passField.clear();
+                sceneManager.showDashboard();
             } else {
                 errorLabel.setText("Invalid username or password.");
             }
         });
-
-        regBtn.addActionListener(e -> {
-            userField.setText("");
-            passField.setText("");
-            errorLabel.setText(" ");
-            cardLayout.show(mainPanel, "REGISTER");
-        });
-
-        // Allow Enter key to trigger login
-        passField.addActionListener(e -> loginBtn.doClick());
+        regBtn.setOnAction(e -> { userField.clear(); passField.clear(); errorLabel.setText(" "); sceneManager.showRegister(); });
+        passField.setOnAction(e -> loginBtn.fire());
     }
 
-    private JButton makeButton(String text, Color bg, Color fg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(fg);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setPreferredSize(new Dimension(100, 30));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
     }
 }
 
-class RegisterPanel extends JPanel {
+class RegisterPanel extends VBox {
+    RegisterPanel(SceneManager sceneManager, LoginManager loginManager, FileManager fileManager) {
+        setAlignment(Pos.CENTER);
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-    RegisterPanel(CardLayout cardLayout, JPanel mainPanel, LoginManager loginManager, FileManager fileManager) {
+        VBox form = new VBox(10);
+        form.setAlignment(Pos.CENTER_LEFT);
+        form.setPadding(new Insets(24, 32, 28, 32));
+        form.setMaxWidth(400);
+        form.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;"
+        );
 
-        setLayout(new GridBagLayout());
+        Label appTitle = new Label("MotoMetrics — Create Account");
+        appTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: " + Theme.TEXT + ";");
 
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(
-                        BorderFactory.createLineBorder(new Color(60, 60, 140), 1),
-                        "MotoMetrics — Create Account"
-                ),
-                BorderFactory.createEmptyBorder(10, 20, 15, 20)
-        ));
-        form.setPreferredSize(new Dimension(300, 260));
-        form.setBackground(Color.WHITE);
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: " + Theme.BORDER + ";");
 
-        JTextField userField    = new JTextField();
-        JPasswordField passField    = new JPasswordField();
-        JPasswordField confirmField = new JPasswordField();
+        Label userLabel = new Label("Username");
+        userLabel.setStyle(Theme.LABEL_STYLE);
+        TextField userField = new TextField();
+        userField.setPromptText("Enter username");
+        userField.setMaxWidth(Double.MAX_VALUE);
+        userField.setStyle(Theme.INPUT_STYLE);
 
-        userField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        passField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        confirmField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        Label passLabel = new Label("Password");
+        passLabel.setStyle(Theme.LABEL_STYLE);
+        PasswordField passField = new PasswordField();
+        passField.setPromptText("Enter password");
+        passField.setMaxWidth(Double.MAX_VALUE);
+        passField.setStyle(Theme.INPUT_STYLE);
 
-        JLabel errorLabel = new JLabel(" ");
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Label confirmLabel = new Label("Confirm Password");
+        confirmLabel.setStyle(Theme.LABEL_STYLE);
+        PasswordField confirmField = new PasswordField();
+        confirmField.setPromptText("Confirm password");
+        confirmField.setMaxWidth(Double.MAX_VALUE);
+        confirmField.setStyle(Theme.INPUT_STYLE);
 
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        btnRow.setBackground(Color.WHITE);
-        JButton regBtn  = makeButton("Register", new Color(34, 122, 34), Color.WHITE);
-        JButton backBtn = makeButton("Back",      Color.LIGHT_GRAY,       Color.DARK_GRAY);
-        btnRow.add(regBtn);
-        btnRow.add(backBtn);
+        Label errorLabel = new Label(" ");
+        errorLabel.setStyle("-fx-text-fill: #f87171; -fx-font-size: 12;");
 
-        form.add(new JLabel("Username"));
-        form.add(Box.createVerticalStrut(4));
-        form.add(userField);
-        form.add(Box.createVerticalStrut(8));
-        form.add(new JLabel("Password"));
-        form.add(Box.createVerticalStrut(4));
-        form.add(passField);
-        form.add(Box.createVerticalStrut(8));
-        form.add(new JLabel("Confirm Password"));
-        form.add(Box.createVerticalStrut(4));
-        form.add(confirmField);
-        form.add(Box.createVerticalStrut(6));
-        form.add(errorLabel);
-        form.add(Box.createVerticalStrut(6));
-        form.add(btnRow);
+        Button regBtn  = makeBtn("Register", Theme.GREEN,  Theme.GREEN_TEXT);
+        Button backBtn = makeBtn("Back",      Theme.CARD,   Theme.MUTED);
+        HBox btnRow = new HBox(10, regBtn, backBtn);
 
-        add(form);
+        form.getChildren().addAll(appTitle, sep, userLabel, userField, passLabel, passField, confirmLabel, confirmField, errorLabel, btnRow);
+        getChildren().add(form);
 
-        regBtn.addActionListener(e -> {
+        regBtn.setOnAction(e -> {
             String username = userField.getText().trim();
-            String password = new String(passField.getPassword()).trim();
-            String confirm  = new String(confirmField.getPassword()).trim();
-
-            if (username.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
-                errorLabel.setText("Please fill in all fields.");
-                return;
-            }
-            if (!password.equals(confirm)) {
-                errorLabel.setText("Passwords do not match.");
-                return;
-            }
-            if (username.length() < 3) {
-                errorLabel.setText("Username must be at least 3 characters.");
-                return;
-            }
-
+            String password = passField.getText().trim();
+            String confirm  = confirmField.getText().trim();
+            if (username.isEmpty() || password.isEmpty() || confirm.isEmpty()) { errorLabel.setText("Please fill in all fields."); return; }
+            if (!password.equals(confirm)) { errorLabel.setText("Passwords do not match."); return; }
+            if (username.length() < 3) { errorLabel.setText("Username must be at least 3 characters."); return; }
             boolean success = loginManager.register(username, password);
             if (success) {
                 fileManager.saveUsers(loginManager.getUsers());
-                // Auto-login after register
                 loginManager.login(username, password);
-                userField.setText(""); passField.setText(""); confirmField.setText("");
-                errorLabel.setText(" ");
-                DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-                dash.refresh();
-                cardLayout.show(mainPanel, "DASHBOARD");
+                userField.clear(); passField.clear(); confirmField.clear();
+                sceneManager.showDashboard();
             } else {
                 errorLabel.setText("Username already taken. Choose another.");
             }
         });
-
-        backBtn.addActionListener(e -> {
-            userField.setText(""); passField.setText(""); confirmField.setText("");
-            errorLabel.setText(" ");
-            cardLayout.show(mainPanel, "LOGIN");
-        });
+        backBtn.setOnAction(e -> { userField.clear(); passField.clear(); confirmField.clear(); sceneManager.showLogin(); });
     }
 
-    private JButton makeButton(String text, Color bg, Color fg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(fg);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setPreferredSize(new Dimension(100, 30));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
     }
 }
 
-class DashboardPanel extends JPanel {
+class DashboardPanel extends BorderPane {
 
     private VehicleManager vehicleManager;
     private LoginManager loginManager;
     private FileManager fileManager;
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
+    private SceneManager sceneManager;
+    private Label welcomeLabel;
+    private ListView<String> vehicleList;
+    private ObservableList<String> listModel;
 
-    private JLabel welcomeLabel;
-    private DefaultListModel<String> listModel;
-    private JList<String> vehicleList;
+    DashboardPanel(SceneManager sceneManager, VehicleManager vehicleManager,
+                   LoginManager loginManager, FileManager fileManager) {
+        this.sceneManager  = sceneManager;
+        this.vehicleManager= vehicleManager;
+        this.loginManager  = loginManager;
+        this.fileManager   = fileManager;
 
-    DashboardPanel(CardLayout cardLayout, JPanel mainPanel,
-                   VehicleManager vehicleManager, LoginManager loginManager,
-                   FileManager fileManager) {
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-        this.cardLayout     = cardLayout;
-        this.mainPanel      = mainPanel;
-        this.vehicleManager = vehicleManager;
-        this.loginManager   = loginManager;
-        this.fileManager    = fileManager;
+        BorderPane topBar = new BorderPane();
+        topBar.setStyle(Theme.NAV_STYLE);
+        Label appLabel = new Label("MotoMetrics");
+        appLabel.setStyle("-fx-text-fill: " + Theme.ACCENT + "; -fx-font-size: 14; -fx-font-weight: bold;");
+        welcomeLabel = new Label("Welcome");
+        welcomeLabel.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 14; -fx-font-weight: bold;");
+        Button logoutBtn = makeBtn("Logout", Theme.RED, Theme.RED_TEXT);
+        topBar.setLeft(appLabel);
+        topBar.setCenter(welcomeLabel);
+        topBar.setRight(logoutBtn);
+        BorderPane.setAlignment(appLabel, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(welcomeLabel, Pos.CENTER);
+        BorderPane.setAlignment(logoutBtn, Pos.CENTER_RIGHT);
 
-        setLayout(new BorderLayout());
+        listModel   = FXCollections.observableArrayList();
+        vehicleList = new ListView<>(listModel);
+        vehicleList.setStyle(
+            "-fx-background-color: " + Theme.BASE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-control-inner-background: " + Theme.BASE + ";"
+        );
 
-        // ---- TOP NAV BAR ----
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(60, 60, 140));
-        topBar.setBorder(new EmptyBorder(8, 14, 8, 14));
+        vehicleList.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null); setText(null);
+                    setStyle("-fx-background-color: " + Theme.BASE + ";");
+                    return;
+                }
+                String[] parts = item.split("\\|");
+                String name  = parts[0];
+                String sub   = parts.length > 1 ? parts[1] : "";
+                double score = parts.length > 2 ? Double.parseDouble(parts[2]) : 0;
 
-        welcomeLabel = new JLabel("Welcome");
-        welcomeLabel.setForeground(Color.WHITE);
-        welcomeLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+                Label nameLabel = new Label(name);
+                nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: " + Theme.TEXT + ";");
+                Label subLabel = new Label(sub);
+                subLabel.setStyle("-fx-text-fill: " + Theme.MUTED + "; -fx-font-size: 11;");
+                VBox textBox = new VBox(2, nameLabel, subLabel);
 
-        JLabel appLabel = new JLabel("MotoMetrics");
-        appLabel.setForeground(new Color(200, 200, 255));
-        appLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+                String scoreBg, scoreFg;
+                if (score >= 80)      { scoreBg = Theme.SCORE_GREEN_BG; scoreFg = Theme.SCORE_GREEN_FG; }
+                else if (score >= 60) { scoreBg = Theme.SCORE_AMBER_BG; scoreFg = Theme.SCORE_AMBER_FG; }
+                else                  { scoreBg = Theme.SCORE_RED_BG;   scoreFg = Theme.SCORE_RED_FG;   }
 
-        JButton logoutBtn = new JButton("Logout");
-        logoutBtn.setBackground(new Color(178, 34, 34));
-        logoutBtn.setForeground(Color.WHITE);
-        logoutBtn.setFocusPainted(false);
-        logoutBtn.setBorderPainted(false);
-        logoutBtn.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        logoutBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                Label scoreLabel = new Label(String.format("%.1f/100", score));
+                scoreLabel.setStyle(
+                    "-fx-font-size: 12; -fx-font-weight: bold;" +
+                    "-fx-padding: 4 10 4 10;" +
+                    "-fx-background-radius: 5;" +
+                    "-fx-background-color: " + scoreBg + ";" +
+                    "-fx-text-fill: " + scoreFg + ";"
+                );
 
-        topBar.add(appLabel,    BorderLayout.WEST);
-        topBar.add(welcomeLabel, BorderLayout.CENTER);
-        topBar.add(logoutBtn,   BorderLayout.EAST);
+                BorderPane row = new BorderPane();
+                row.setLeft(textBox);
+                row.setRight(scoreLabel);
+                row.setPadding(new Insets(8, 10, 8, 10));
+                BorderPane.setAlignment(scoreLabel, Pos.CENTER_RIGHT);
+                BorderPane.setAlignment(textBox, Pos.CENTER_LEFT);
+                row.setStyle("-fx-background-color: transparent;");
 
-        // ---- VEHICLE LIST ----
-        listModel   = new DefaultListModel<>();
-        vehicleList = new JList<>(listModel);
-        vehicleList.setFont(new Font("Monospaced", Font.PLAIN, 13));
-        vehicleList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        vehicleList.setCellRenderer(new VehicleCellRenderer());
-        vehicleList.setFixedCellHeight(52);
-
-        JScrollPane scrollPane = new JScrollPane(vehicleList);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("My Vehicles"));
-
-        // ---- SIDE BUTTONS ----
-        JPanel sidePanel = new JPanel();
-        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
-        sidePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        sidePanel.setPreferredSize(new Dimension(150, 0));
-
-        JButton addBtn     = makeSideBtn("+ Add Vehicle", new Color(34, 122, 34));
-        JButton detailBtn  = makeSideBtn("View Details",  new Color(60, 60, 140));
-        JButton tripBtn    = makeSideBtn("Start Trip →",  new Color(60, 60, 140));
-        JButton removeBtn  = makeSideBtn("Remove",        new Color(178, 34, 34));
-
-        sidePanel.add(addBtn);
-        sidePanel.add(Box.createVerticalStrut(8));
-        sidePanel.add(detailBtn);
-        sidePanel.add(Box.createVerticalStrut(8));
-        sidePanel.add(tripBtn);
-        sidePanel.add(Box.createVerticalStrut(8));
-        sidePanel.add(removeBtn);
-
-        // ---- STATUS BAR ----
-        JLabel statusBar = new JLabel("  Select a vehicle to view details or start a trip.");
-        statusBar.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        statusBar.setForeground(Color.GRAY);
-        statusBar.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY),
-                new EmptyBorder(4, 8, 4, 8)
-        ));
-
-        // ---- ASSEMBLE ----
-        add(topBar,    BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-        add(sidePanel, BorderLayout.EAST);
-        add(statusBar, BorderLayout.SOUTH);
-
-        // ---- ACTIONS ----
-        logoutBtn.addActionListener(e -> {
-            loginManager.logout();
-            cardLayout.show(mainPanel, "LOGIN");
+                setGraphic(row);
+                setText(null);
+                setStyle("-fx-background-color: " + (isSelected() ? Theme.CARD : Theme.BASE) + "; -fx-padding: 0;");
+            }
         });
 
-        addBtn.addActionListener(e -> {
-            cardLayout.show(mainPanel, "ADD_VEHICLE");
-        });
+        VBox listSection = new VBox();
+        listSection.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        VBox.setVgrow(vehicleList, javafx.scene.layout.Priority.ALWAYS);
+        listSection.getChildren().add(vehicleList);
+        listSection.setPadding(new Insets(8));
+        VBox.setVgrow(listSection, javafx.scene.layout.Priority.ALWAYS);
 
-        detailBtn.addActionListener(e -> {
-            int idx = vehicleList.getSelectedIndex();
-            if (idx < 0) {
-                JOptionPane.showMessageDialog(this, "Please select a vehicle first.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            Vehicle selected = vehicleManager.getVehicles().get(idx);
-            VehicleDetailsPanel det = (VehicleDetailsPanel) mainPanel.getComponent(4);
-            det.loadVehicle(selected);
-            cardLayout.show(mainPanel, "VEHICLE_DETAILS");
-        });
+        VBox sidePanel = new VBox(8);
+        sidePanel.setPadding(new Insets(14));
+        sidePanel.setPrefWidth(155);
+        sidePanel.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 0 0 0 1;"
+        );
+        Button addBtn    = makeBtn("+ Add Vehicle", Theme.GREEN,  Theme.GREEN_TEXT);
+        Button detailBtn = makeBtn("View Details",  Theme.ACCENT, "#ffffff");
+        Button tripBtn   = makeBtn("Start Trip →",  Theme.ACCENT, "#ffffff");
+        Button removeBtn = makeBtn("Remove",         Theme.RED,    Theme.RED_TEXT);
+        for (Button b : new Button[]{addBtn, detailBtn, tripBtn, removeBtn}) b.setMaxWidth(Double.MAX_VALUE);
+        sidePanel.getChildren().addAll(addBtn, detailBtn, tripBtn, removeBtn);
 
-        tripBtn.addActionListener(e -> {
-            if (vehicleManager.getVehicles().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Add a vehicle first before starting a trip.", "No Vehicles", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            TripPanel tp = (TripPanel) mainPanel.getComponent(5);
-            tp.refreshVehicleList();
-            cardLayout.show(mainPanel, "TRIP");
-        });
+        BorderPane center = new BorderPane();
+        center.setCenter(listSection);
+        center.setRight(sidePanel);
+        center.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
-        removeBtn.addActionListener(e -> {
-            int idx = vehicleList.getSelectedIndex();
-            if (idx < 0) {
-                JOptionPane.showMessageDialog(this, "Please select a vehicle to remove.", "No Selection", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            String name = vehicleManager.getVehicles().get(idx).getMake() + " " + vehicleManager.getVehicles().get(idx).getModel();
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Remove " + name + "?", "Confirm Remove", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                vehicleManager.removeVehicle(idx);
-                fileManager.saveVehicles(vehicleManager.getVehicles());
-                refresh();
-            }
+        Label statusBar = new Label("  Select a vehicle to view details or start a trip.");
+        statusBar.setMaxWidth(Double.MAX_VALUE);
+        statusBar.setStyle(
+            "-fx-font-size: 12; -fx-text-fill: " + Theme.MUTED + ";" +
+            "-fx-background-color: " + Theme.NAV + ";" +
+            "-fx-padding: 6 12 6 12;" +
+            "-fx-border-color: " + Theme.BORDER + "; -fx-border-width: 1 0 0 0;"
+        );
+
+        setTop(topBar);
+        setCenter(center);
+        setBottom(statusBar);
+        refresh();
+
+        logoutBtn.setOnAction(e -> { loginManager.logout(); sceneManager.showLogin(); });
+        addBtn.setOnAction(e -> sceneManager.showAddVehicle());
+        detailBtn.setOnAction(e -> {
+            int idx = vehicleList.getSelectionModel().getSelectedIndex();
+            if (idx < 0) { showAlert("No Selection", "Please select a vehicle first."); return; }
+            sceneManager.showVehicleDetails(vehicleManager.getVehicles().get(idx));
+        });
+        tripBtn.setOnAction(e -> {
+            if (vehicleManager.getVehicles().isEmpty()) { showAlert("No Vehicles", "Add a vehicle first."); return; }
+            sceneManager.showTrip();
+        });
+        removeBtn.setOnAction(e -> {
+            int idx = vehicleList.getSelectionModel().getSelectedIndex();
+            if (idx < 0) { showAlert("No Selection", "Please select a vehicle to remove."); return; }
+            Vehicle v = vehicleManager.getVehicles().get(idx);
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Remove");
+            confirm.setContentText("Remove " + v.getMake() + " " + v.getModel() + "?");
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == javafx.scene.control.ButtonType.OK) {
+                    vehicleManager.removeVehicle(idx);
+                    fileManager.saveVehicles(vehicleManager.getVehicles());
+                    refresh();
+                }
+            });
         });
     }
 
-    // Called every time Dashboard becomes visible
     public void refresh() {
-        if (loginManager.getCurrentUser() != null) {
+        if (loginManager.getCurrentUser() != null)
             welcomeLabel.setText("Welcome, " + loginManager.getCurrentUser().getUsername());
-        }
         listModel.clear();
-        ArrayList<Vehicle> vehicles = vehicleManager.getVehicles();
-        for (Vehicle v : vehicles) {
+        for (Vehicle v : vehicleManager.getVehicles()) {
             String type  = v instanceof Car ? "Car" : v instanceof Motorcycle ? "Motorcycle" : "Truck";
             String score = String.format("%.1f", v.CalculateScore());
-            listModel.addElement(v.getMake() + " " + v.getModel() + "|" + type + " · " + v.getEngine().getCapacity() + "cc|" + score);
+            listModel.add(v.getMake() + " " + v.getModel() + "|" + type + " · " + v.getEngine().getCapacity() + "cc|" + score);
         }
     }
 
-    private JButton makeSideBtn(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
     }
-
-    // ---- Custom cell renderer for colored score badges ----
-    private static class VehicleCellRenderer extends JPanel implements ListCellRenderer<String> {
-        private JLabel nameLabel  = new JLabel();
-        private JLabel subLabel   = new JLabel();
-        private JLabel scoreLabel = new JLabel();
-
-        VehicleCellRenderer() {
-            setLayout(new BorderLayout(10, 0));
-            setBorder(new EmptyBorder(6, 10, 6, 10));
-
-            JPanel textPanel = new JPanel();
-            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-            textPanel.setOpaque(false);
-            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
-            subLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-            subLabel.setForeground(Color.GRAY);
-            textPanel.add(nameLabel);
-            textPanel.add(subLabel);
-
-            scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
-            scoreLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            scoreLabel.setOpaque(true);
-            scoreLabel.setPreferredSize(new Dimension(70, 28));
-            scoreLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
-
-            add(textPanel,  BorderLayout.CENTER);
-            add(scoreLabel, BorderLayout.EAST);
-        }
-
-        @Override
-        public Component getListCellRendererComponent(JList<? extends String> list, String value,
-                                                      int index, boolean isSelected, boolean cellHasFocus) {
-            String[] parts = value.split("\\|");
-            nameLabel.setText(parts[0]);
-            subLabel.setText(parts.length > 1 ? parts[1] : "");
-            double score = parts.length > 2 ? Double.parseDouble(parts[2]) : 0;
-            scoreLabel.setText(String.format("%.1f/100", score));
-
-            if (score >= 80) {
-                scoreLabel.setBackground(new Color(200, 240, 200));
-                scoreLabel.setForeground(new Color(26, 90, 26));
-            } else if (score >= 60) {
-                scoreLabel.setBackground(new Color(255, 240, 180));
-                scoreLabel.setForeground(new Color(120, 80, 0));
-            } else {
-                scoreLabel.setBackground(new Color(255, 210, 210));
-                scoreLabel.setForeground(new Color(139, 0, 0));
-            }
-
-            setBackground(isSelected ? new Color(220, 225, 255) : Color.WHITE);
-            nameLabel.setForeground(Color.BLACK);
-            return this;
-        }
+    private void showAlert(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setTitle(title); a.setContentText(msg); a.showAndWait();
     }
 }
 
-class AddVehiclePanel extends JPanel {
+class AddVehiclePanel extends BorderPane {
 
     private VehicleManager vehicleManager;
     private FileManager fileManager;
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
-
-    // Shared fields
-    private JTextField makeField, modelField, engineCapField, engineHealthField;
-    private JTextField oilField, airField, tyresField, suspField, brakesField;
-
-    // Car-specific
-    private JPanel acPanel;
-    private JComboBox<String> acCombo;
-
-    // Motorcycle-specific
-    private JPanel chainPanel;
-    private JTextField chainField;
-
-    // Truck-specific
-    private JPanel loadPanel;
-    private JTextField loadField;
-
-    // Type selector
+    private SceneManager sceneManager;
+    private TextField makeField, modelField, engineCapField, engineHealthField;
+    private TextField oilField, airField, tyresField, suspField, brakesField;
+    private ComboBox<String> acCombo;
+    private TextField chainField, loadField;
+    private VBox acRow, chainRow, loadRow;
     private String selectedType = "Car";
+    private Label errorLabel;
 
-    AddVehiclePanel(CardLayout cardLayout, JPanel mainPanel,
-                    VehicleManager vehicleManager, FileManager fileManager) {
+    AddVehiclePanel(SceneManager sceneManager, VehicleManager vehicleManager, FileManager fileManager) {
+        this.sceneManager  = sceneManager;
+        this.vehicleManager= vehicleManager;
+        this.fileManager   = fileManager;
 
-        this.cardLayout     = cardLayout;
-        this.mainPanel      = mainPanel;
-        this.vehicleManager = vehicleManager;
-        this.fileManager    = fileManager;
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-        setLayout(new BorderLayout());
+        BorderPane topBar = new BorderPane();
+        topBar.setStyle(Theme.NAV_STYLE);
+        Label title = new Label("Add New Vehicle");
+        title.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 15; -fx-font-weight: bold;");
+        topBar.setLeft(title);
 
-        // ---- TOP BAR ----
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(60, 60, 140));
-        topBar.setBorder(new EmptyBorder(8, 14, 8, 14));
-        JLabel title = new JLabel("Add New Vehicle");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 14));
-        topBar.add(title, BorderLayout.WEST);
+        ToggleGroup typeGroup = new ToggleGroup();
+        RadioButton carBtn   = new RadioButton("Car");
+        RadioButton bikeBtn  = new RadioButton("Motorcycle");
+        RadioButton truckBtn = new RadioButton("Truck");
+        for (RadioButton rb : new RadioButton[]{carBtn, bikeBtn, truckBtn}) {
+            rb.setToggleGroup(typeGroup);
+            rb.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 13;");
+        }
+        carBtn.setSelected(true);
 
-        // ---- TYPE TOGGLE ----
-        JPanel typeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        typeRow.setBackground(new Color(240, 240, 250));
-        typeRow.add(new JLabel("Vehicle type:"));
+        Label typeLabel = new Label("Vehicle type:");
+        typeLabel.setStyle(Theme.LABEL_STYLE);
+        HBox typeRow = new HBox(16, typeLabel, carBtn, bikeBtn, truckBtn);
+        typeRow.setAlignment(Pos.CENTER_LEFT);
+        typeRow.setPadding(new Insets(10, 16, 10, 16));
+        typeRow.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 0 0 1 0;"
+        );
 
-        ButtonGroup group = new ButtonGroup();
-        JRadioButton carBtn  = new JRadioButton("Car",        true);
-        JRadioButton bikeBtn = new JRadioButton("Motorcycle", false);
-        JRadioButton truckBtn= new JRadioButton("Truck",      false);
-        group.add(carBtn); group.add(bikeBtn); group.add(truckBtn);
-        typeRow.add(carBtn); typeRow.add(bikeBtn); typeRow.add(truckBtn);
+        GridPane form = new GridPane();
+        form.setHgap(12);
+        form.setVgap(10);
+        form.setPadding(new Insets(14, 16, 10, 16));
+        form.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
-        // ---- FORM GRID ----
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 6));
-        formPanel.setBorder(new EmptyBorder(10, 16, 10, 16));
+        makeField         = new TextField();
+        modelField        = new TextField();
+        engineCapField    = new TextField("1600");
+        engineHealthField = new TextField("100");
+        oilField          = new TextField("10.0");
+        airField          = new TextField("10.0");
+        tyresField        = new TextField("10.0");
+        suspField         = new TextField("10.0");
+        brakesField       = new TextField("10.0");
 
-        makeField        = new JTextField();
-        modelField       = new JTextField();
-        engineCapField   = new JTextField("1600");
-        engineHealthField= new JTextField("100");
-        oilField         = new JTextField("10.0");
-        airField         = new JTextField("10.0");
-        tyresField       = new JTextField("10.0");
-        suspField        = new JTextField("10.0");
-        brakesField      = new JTextField("10.0");
+        String[] labelTexts = {
+            "Make:", "Model:", "Engine Capacity (cc):", "Engine Health (0–100):",
+            "Oil Level (0–10):", "Air Pressure (0–10):", "Tyre Health (0–10):",
+            "Suspension (0–10):", "Brake Health (0–10):"
+        };
+        TextField[] fields = {
+            makeField, modelField, engineCapField, engineHealthField,
+            oilField, airField, tyresField, suspField, brakesField
+        };
 
-        formPanel.add(new JLabel("Make:")); formPanel.add(makeField);
-        formPanel.add(new JLabel("Model:")); formPanel.add(modelField);
-        formPanel.add(new JLabel("Engine Capacity (cc):")); formPanel.add(engineCapField);
-        formPanel.add(new JLabel("Engine Health (0–100):")); formPanel.add(engineHealthField);
-        formPanel.add(new JLabel("Oil Level (0–10):")); formPanel.add(oilField);
-        formPanel.add(new JLabel("Air Pressure (0–10):")); formPanel.add(airField);
-        formPanel.add(new JLabel("Tyre Health (0–10):")); formPanel.add(tyresField);
-        formPanel.add(new JLabel("Suspension (0–10):")); formPanel.add(suspField);
-        formPanel.add(new JLabel("Brake Health (0–10):")); formPanel.add(brakesField);
+        for (int i = 0; i < labelTexts.length; i++) {
+            Label lbl = new Label(labelTexts[i]);
+            lbl.setStyle(Theme.LABEL_STYLE);
+            form.add(lbl, 0, i);
+            fields[i].setMaxWidth(Double.MAX_VALUE);
+            fields[i].setStyle(Theme.INPUT_STYLE);
+            form.add(fields[i], 1, i);
+        }
+        GridPane.setHgrow(makeField, javafx.scene.layout.Priority.ALWAYS);
 
-        // ---- EXTRA FIELDS ----
-        // Car: AC
-        acCombo = new JComboBox<>(new String[]{"Yes", "No"});
-        acPanel = new JPanel(new GridLayout(0, 2, 10, 6));
-        acPanel.add(new JLabel("Has AC:")); acPanel.add(acCombo);
-        acPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
+        acCombo = new ComboBox<>(FXCollections.observableArrayList("Yes", "No"));
+        acCombo.setValue("Yes");
 
-        // Motorcycle: chain sprocket
-        chainField = new JTextField("10.0");
-        chainPanel = new JPanel(new GridLayout(0, 2, 10, 6));
-        chainPanel.add(new JLabel("Chain-Sprocket Health (0–10):")); chainPanel.add(chainField);
-        chainPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
-        chainPanel.setVisible(false);
+        acCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        // Truck: load capacity
-        loadField = new JTextField("20000");
-        loadPanel = new JPanel(new GridLayout(0, 2, 10, 6));
-        loadPanel.add(new JLabel("Load Capacity (kg):")); loadPanel.add(loadField);
-        loadPanel.setBorder(new EmptyBorder(0, 16, 0, 16));
-        loadPanel.setVisible(false);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.BLACK);
+                }
+            }
+        });
 
-        // ---- ERROR + BUTTONS ----
-        JLabel errorLabel = new JLabel(" ");
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        errorLabel.setBorder(new EmptyBorder(0, 16, 0, 16));
+        acCombo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
-        JButton saveBtn   = makeBtn("Save Vehicle", new Color(34, 122, 34));
-        JButton cancelBtn = makeBtn("Cancel",       Color.GRAY);
-        btnRow.add(saveBtn); btnRow.add(cancelBtn);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.BLACK);
+                    setStyle("-fx-background-color: " + Theme.NAV + ";");
+                }
+            }
+        });
 
-        // ---- INNER SCROLL CONTENT ----
-        JPanel inner = new JPanel();
-        inner.setLayout(new BoxLayout(inner, BoxLayout.Y_AXIS));
-        inner.add(typeRow);
-        inner.add(formPanel);
-        inner.add(acPanel);
-        inner.add(chainPanel);
-        inner.add(loadPanel);
-        inner.add(errorLabel);
-        inner.add(btnRow);
+        acRow = makeExtraRow("Has AC:", acCombo);
 
-        JScrollPane scroll = new JScrollPane(inner);
-        scroll.setBorder(null);
+        chainField = new TextField("10.0");
+        chainField.setStyle(Theme.INPUT_STYLE);
+        chainRow = makeExtraRow("Chain-Sprocket Health (0–10):", chainField);
+        chainRow.setVisible(false); chainRow.setManaged(false);
 
-        add(topBar, BorderLayout.NORTH);
-        add(scroll, BorderLayout.CENTER);
+        loadField = new TextField("20000");
+        loadField.setStyle(Theme.INPUT_STYLE);
+        loadRow = makeExtraRow("Load Capacity (kg):", loadField);
+        loadRow.setVisible(false); loadRow.setManaged(false);
 
-        // ---- TYPE TOGGLE ACTIONS ----
-        carBtn.addActionListener(e -> {
+        errorLabel = new Label(" ");
+        errorLabel.setStyle("-fx-text-fill: #f87171; -fx-font-size: 12; -fx-padding: 0 16 0 16;");
+
+        Button saveBtn   = makeBtn("Save Vehicle", Theme.GREEN,  Theme.GREEN_TEXT);
+        Button cancelBtn = makeBtn("Cancel",        Theme.CARD,   Theme.MUTED);
+        HBox btnRow = new HBox(10, saveBtn, cancelBtn);
+        btnRow.setPadding(new Insets(8, 16, 10, 16));
+        btnRow.setStyle("-fx-background-color: " + Theme.BASE + ";");
+
+        VBox inner = new VBox(typeRow, form, acRow, chainRow, loadRow, errorLabel, btnRow);
+        inner.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        ScrollPane scroll = new ScrollPane(inner);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: " + Theme.BASE + "; -fx-background: " + Theme.BASE + ";");
+
+        setTop(topBar);
+        setCenter(scroll);
+
+        carBtn.setOnAction(e -> {
             selectedType = "Car";
-            acPanel.setVisible(true);
-            chainPanel.setVisible(false);
-            loadPanel.setVisible(false);
-            revalidate(); repaint();
+            acRow.setVisible(true);   acRow.setManaged(true);
+            chainRow.setVisible(false); chainRow.setManaged(false);
+            loadRow.setVisible(false);  loadRow.setManaged(false);
         });
-        bikeBtn.addActionListener(e -> {
+        bikeBtn.setOnAction(e -> {
             selectedType = "Motorcycle";
-            acPanel.setVisible(false);
-            chainPanel.setVisible(true);
-            loadPanel.setVisible(false);
-            revalidate(); repaint();
+            acRow.setVisible(false);    acRow.setManaged(false);
+            chainRow.setVisible(true);  chainRow.setManaged(true);
+            loadRow.setVisible(false);  loadRow.setManaged(false);
         });
-        truckBtn.addActionListener(e -> {
+        truckBtn.setOnAction(e -> {
             selectedType = "Truck";
-            acPanel.setVisible(false);
-            chainPanel.setVisible(false);
-            loadPanel.setVisible(true);
-            revalidate(); repaint();
+            acRow.setVisible(false);    acRow.setManaged(false);
+            chainRow.setVisible(false); chainRow.setManaged(false);
+            loadRow.setVisible(true);   loadRow.setManaged(true);
         });
 
-        // ---- SAVE ACTION ----
-        saveBtn.addActionListener(e -> {
+        saveBtn.setOnAction(e -> {
             errorLabel.setText(" ");
-
             String make  = makeField.getText().trim();
             String model = modelField.getText().trim();
-
-            if (make.isEmpty() || model.isEmpty()) {
-                errorLabel.setText("Make and Model are required.");
-                return;
-            }
-
+            if (make.isEmpty() || model.isEmpty()) { errorLabel.setText("Make and Model are required."); return; }
             try {
                 int    engCap    = Integer.parseInt(engineCapField.getText().trim());
                 int    engHealth = Integer.parseInt(engineHealthField.getText().trim());
@@ -1489,228 +1554,192 @@ class AddVehiclePanel extends JPanel {
                 double susp      = Double.parseDouble(suspField.getText().trim());
                 double brakes    = Double.parseDouble(brakesField.getText().trim());
 
-                // Validate ranges
                 if (engHealth < 0 || engHealth > 100) { errorLabel.setText("Engine health must be 0–100."); return; }
-                if (oil < 0 || oil > 10 || air < 0 || air > 10 || tyres < 0 || tyres > 10
-                        || susp < 0 || susp > 10 || brakes < 0 || brakes > 10) {
-                    errorLabel.setText("Health values must be 0–10.");
-                    return;
+                if (oil<0||oil>10||air<0||air>10||tyres<0||tyres>10||susp<0||susp>10||brakes<0||brakes>10) {
+                    errorLabel.setText("Health values must be 0–10."); return;
                 }
 
                 Vehicle v;
                 if (selectedType.equals("Car")) {
-                    boolean hasAC = acCombo.getSelectedItem().equals("Yes");
-                    v = new Car(make, model, brakes, oil, air, tyres, susp, hasAC, engCap, engHealth);
-
+                    v = new Car(make, model, brakes, oil, air, tyres, susp, acCombo.getValue().equals("Yes"), engCap, engHealth);
                 } else if (selectedType.equals("Motorcycle")) {
                     double chain = Double.parseDouble(chainField.getText().trim());
-                    if (chain < 0 || chain > 10) { errorLabel.setText("Chain-Sprocket must be 0–10."); return; }
+                    if (chain<0||chain>10) { errorLabel.setText("Chain-Sprocket must be 0–10."); return; }
                     v = new Motorcycle(make, model, brakes, oil, air, tyres, susp, chain, engCap, engHealth);
-
                 } else {
-                    double load = Double.parseDouble(loadField.getText().trim());
-                    v = new Truck(make, model, brakes, oil, air, tyres, susp, engCap, engHealth, load);
+                    v = new Truck(make, model, brakes, oil, air, tyres, susp, engCap, engHealth, Double.parseDouble(loadField.getText().trim()));
                 }
-
                 vehicleManager.addVehicle(v);
                 fileManager.saveVehicles(vehicleManager.getVehicles());
-
-                // Refresh dashboard and go back
-                DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-                dash.refresh();
                 clearForm();
-                cardLayout.show(mainPanel, "DASHBOARD");
-
+                sceneManager.showDashboard();
             } catch (NumberFormatException ex) {
                 errorLabel.setText("Please enter valid numbers in all fields.");
             }
         });
+        cancelBtn.setOnAction(e -> { clearForm(); sceneManager.showDashboard(); });
+    }
 
-        cancelBtn.addActionListener(e -> {
-            clearForm();
-            cardLayout.show(mainPanel, "DASHBOARD");
-        });
+    private VBox makeExtraRow(String labelText, javafx.scene.Node field) {
+        Label lbl = new Label(labelText);
+        lbl.setStyle(Theme.LABEL_STYLE);
+        HBox row = new HBox(10, lbl, field);
+        row.setPadding(new Insets(4, 16, 0, 16));
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        return new VBox(row);
     }
 
     private void clearForm() {
-        makeField.setText(""); modelField.setText("");
+        makeField.clear(); modelField.clear();
         engineCapField.setText("1600"); engineHealthField.setText("100");
         oilField.setText("10.0"); airField.setText("10.0");
-        tyresField.setText("10.0"); suspField.setText("10.0");
-        brakesField.setText("10.0");
+        tyresField.setText("10.0"); suspField.setText("10.0"); brakesField.setText("10.0");
         chainField.setText("10.0"); loadField.setText("20000");
-        acCombo.setSelectedIndex(0);
+        acCombo.setValue("Yes");
     }
 
-    private JButton makeBtn(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
     }
 }
 
-class VehicleDetailsPanel extends JPanel {
+class VehicleDetailsPanel extends BorderPane {
 
-    private VehicleManager vehicleManager;
     private FileManager fileManager;
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
-
+    private VehicleManager vehicleManager;
+    private SceneManager sceneManager;
     private Vehicle currentVehicle;
+    private Label titleLabel, scoreLabel;
+    private ProgressBar engineBar, oilBar, airBar, tyresBar, suspBar, brakesBar, chainBar;
+    private HBox chainRow;
+    private TextArea reportArea;
 
-    // Health bars
-    private JProgressBar engineBar, oilBar, airBar, tyresBar, suspBar, brakesBar;
-    private JProgressBar chainBar;   // Motorcycle only
-    private JPanel chainRow;
-    private JLabel scoreLabel;
-    private JTextArea reportArea;
-    private JLabel titleLabel;
+    VehicleDetailsPanel(SceneManager sceneManager, FileManager fileManager, VehicleManager vehicleManager) {
+        this.sceneManager  = sceneManager;
+        this.fileManager   = fileManager;
+        this.vehicleManager= vehicleManager;
 
-    VehicleDetailsPanel(CardLayout cardLayout, JPanel mainPanel, FileManager fileManager, VehicleManager vehicleManager) {
-        this.cardLayout  = cardLayout;
-        this.mainPanel   = mainPanel;
-        this.fileManager = fileManager;
-        this.vehicleManager = vehicleManager;
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-        setLayout(new BorderLayout());
+        BorderPane topBar = new BorderPane();
+        topBar.setStyle(Theme.NAV_STYLE);
+        titleLabel = new Label("Vehicle Health Report");
+        titleLabel.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 15; -fx-font-weight: bold;");
+        topBar.setLeft(titleLabel);
 
-        // ---- TOP BAR ----
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(60, 60, 140));
-        topBar.setBorder(new EmptyBorder(8, 14, 8, 14));
-        titleLabel = new JLabel("Vehicle Health Report");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        topBar.add(titleLabel, BorderLayout.WEST);
+        scoreLabel = new Label("--/100");
+        scoreLabel.setStyle("-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: " + Theme.TEXT + ";");
+        scoreLabel.setMaxWidth(Double.MAX_VALUE);
+        scoreLabel.setAlignment(Pos.CENTER);
+        scoreLabel.setPadding(new Insets(14, 0, 8, 0));
 
-        // ---- SCORE LABEL ----
-        scoreLabel = new JLabel("--/100", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
-        scoreLabel.setBorder(new EmptyBorder(12, 0, 4, 0));
-
-        // ---- HEALTH BARS ----
-        engineBar = makeBar(); oilBar  = makeBar();
-        airBar    = makeBar(); tyresBar= makeBar();
-        suspBar   = makeBar(); brakesBar=makeBar();
+        engineBar = makeBar(); oilBar    = makeBar();
+        airBar    = makeBar(); tyresBar  = makeBar();
+        suspBar   = makeBar(); brakesBar = makeBar();
         chainBar  = makeBar();
 
-        JPanel barsPanel = new JPanel(new GridLayout(0, 1, 0, 6));
-        barsPanel.setBorder(new EmptyBorder(6, 16, 6, 16));
-        barsPanel.add(makeBarRow("Engine Health",    engineBar, "0–100"));
-        barsPanel.add(makeBarRow("Oil Level",         oilBar,   "0–10"));
-        barsPanel.add(makeBarRow("Air Pressure",      airBar,   "0–10"));
-        barsPanel.add(makeBarRow("Tyre Health",       tyresBar, "0–10"));
-        barsPanel.add(makeBarRow("Suspension",        suspBar,  "0–10"));
-        barsPanel.add(makeBarRow("Brake Health",      brakesBar,"0–10"));
-        chainRow = makeBarRow("Chain-Sprocket",       chainBar, "0–10");
-        barsPanel.add(chainRow);
+        VBox barsPanel = new VBox(10);
+        barsPanel.setPadding(new Insets(8, 16, 8, 16));
+        barsPanel.getChildren().addAll(
+            makeBarRow("Engine Health", engineBar),
+            makeBarRow("Oil Level",     oilBar),
+            makeBarRow("Air Pressure",  airBar),
+            makeBarRow("Tyre Health",   tyresBar),
+            makeBarRow("Suspension",    suspBar),
+            makeBarRow("Brake Health",  brakesBar)
+        );
+        chainRow = makeBarRow("Chain-Sprocket", chainBar);
+        barsPanel.getChildren().add(chainRow);
+        barsPanel.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
-        // ---- REPORT AREA ----
-        reportArea = new JTextArea(8, 30);
+        VBox leftPanel = new VBox(scoreLabel, barsPanel);
+        leftPanel.setPrefWidth(370);
+        leftPanel.setStyle("-fx-background-color: " + Theme.BASE + ";");
+
+        reportArea = new TextArea();
         reportArea.setEditable(false);
-        reportArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        reportArea.setBorder(new EmptyBorder(8, 8, 8, 8));
-        JScrollPane reportScroll = new JScrollPane(reportArea);
-        reportScroll.setBorder(BorderFactory.createTitledBorder("Diagnosable Report"));
+        reportArea.setFont(Font.font("Monospaced", 13));
+        reportArea.setWrapText(true);
+        reportArea.setStyle(
+            "-fx-control-inner-background: " + Theme.CARD + ";" +
+            "-fx-background-color: " + Theme.CARD + ";" +
+            "-fx-text-fill: " + Theme.TEXT + ";" +
+            "-fx-font-size: 13;"
+        );
 
-        // ---- BUTTONS ----
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JButton serviceBtn = makeBtn("Service Engine",  new Color(34, 122, 34));
-        JButton saveBtn    = makeBtn("Save Report (.txt)", new Color(60, 60, 140));
-        JButton backBtn    = makeBtn("← Back",          Color.GRAY);
-        JButton resetBtn = new JButton("Reset All Stats");
-        resetBtn.setBackground(new Color(178, 34, 34));  // dark red
-        resetBtn.setForeground(Color.WHITE);
-        resetBtn.setFocusPainted(false);
-        resetBtn.setBorderPainted(false);
-        resetBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        VBox rightPanel = new VBox(6);
+        rightPanel.setPadding(new Insets(12));
+        rightPanel.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        Label reportTitle = new Label("Diagnosable Report");
+        reportTitle.setStyle(Theme.sectionLabel());
+        VBox.setVgrow(reportArea, javafx.scene.layout.Priority.ALWAYS);
+        rightPanel.getChildren().addAll(reportTitle, reportArea);
 
-        btnRow.add(serviceBtn);
-        btnRow.add(saveBtn);
-        btnRow.add(backBtn);
-        btnRow.add(resetBtn);
+        SplitPane split = new SplitPane(leftPanel, rightPanel);
+        split.setDividerPositions(0.5);
+        split.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
-        // ---- LEFT PANEL (bars + score) ----
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.add(scoreLabel, BorderLayout.NORTH);
-        leftPanel.add(barsPanel,  BorderLayout.CENTER);
+        Button serviceBtn = makeBtn("Service Engine",     Theme.GREEN,  Theme.GREEN_TEXT);
+        Button saveBtn    = makeBtn("Save Report (.txt)", Theme.ACCENT, "#ffffff");
+        Button resetBtn   = makeBtn("Reset All Stats",    Theme.RED,    Theme.RED_TEXT);
+        Button backBtn    = makeBtn("← Back",             Theme.CARD,   Theme.MUTED);
 
-        // ---- INNER SPLIT ----
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, reportScroll);
-        split.setDividerLocation(340);
-        split.setResizeWeight(0.5);
+        HBox btnRow = new HBox(10, serviceBtn, saveBtn, resetBtn, backBtn);
+        btnRow.setPadding(new Insets(10, 12, 10, 12));
+        btnRow.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1 0 0 0;"
+        );
 
-        // ---- ASSEMBLE ----
-        JPanel center = new JPanel(new BorderLayout());
-        center.add(split,   BorderLayout.CENTER);
-        center.add(btnRow,  BorderLayout.SOUTH);
+        VBox center = new VBox(split);
+        VBox.setVgrow(split, javafx.scene.layout.Priority.ALWAYS);
+        setTop(topBar); setCenter(center); setBottom(btnRow);
 
-        add(topBar, BorderLayout.NORTH);
-        add(center, BorderLayout.CENTER);
-
-        // ---- ACTIONS ----
-        serviceBtn.addActionListener(e -> {
-            if (currentVehicle != null) {
-                currentVehicle.serviceEngine();
-                loadVehicle(currentVehicle); // refresh bars
-                JOptionPane.showMessageDialog(this, "Engine serviced! Health restored to 100.", "Service Complete", JOptionPane.INFORMATION_MESSAGE);
-            }
+        serviceBtn.setOnAction(e -> {
+            if (currentVehicle != null) { currentVehicle.serviceEngine(); loadVehicle(currentVehicle); showInfo("Service Complete", "Engine restored to 100."); }
         });
-
-        saveBtn.addActionListener(e -> {
+        saveBtn.setOnAction(e -> {
             if (currentVehicle == null) return;
-            String filename = currentVehicle.getMake() + "_" + currentVehicle.getModel() + "_report.txt";
-            fileManager.saveReport(reportArea.getText(), filename);
-            JOptionPane.showMessageDialog(this, "Report saved as: " + filename, "Saved", JOptionPane.INFORMATION_MESSAGE);
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setInitialFileName(currentVehicle.getMake() + "_" + currentVehicle.getModel() + "_report.txt");
+            java.io.File file = chooser.showSaveDialog(getScene().getWindow());
+            if (file != null) { fileManager.saveReport(reportArea.getText(), file.getAbsolutePath()); showInfo("Saved", "Report saved to:\n" + file.getAbsolutePath()); }
         });
-
-        backBtn.addActionListener(e -> {
-            DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-            dash.refresh();
-            cardLayout.show(mainPanel, "DASHBOARD");
-        });
-
-        resetBtn.addActionListener(e -> {
+        resetBtn.setOnAction(e -> {
             if (currentVehicle == null) return;
-
-            // Ask user to confirm — important so they don't reset by accident
-            int confirm = JOptionPane.showConfirmDialog(
-                    this,
-                    "Reset ALL stats for " + currentVehicle.getMake() + " " + currentVehicle.getModel() + " to 10.0?\nThis cannot be undone.",
-                    "Confirm Reset",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                currentVehicle.resetStats();               // reset all stats
-                fileManager.saveVehicles(vehicleManager.getVehicles()); // save to file
-                loadVehicle(currentVehicle);               // refresh the progress bars
-                JOptionPane.showMessageDialog(this,
-                        "All stats reset to 10.0. Engine restored to 100.",
-                        "Reset Complete",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            }
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm Reset");
+            confirm.setContentText("Reset ALL stats for " + currentVehicle.getMake() + " " + currentVehicle.getModel() + "?");
+            confirm.showAndWait().ifPresent(r -> {
+                if (r == javafx.scene.control.ButtonType.OK) {
+                    currentVehicle.resetStats();
+                    fileManager.saveVehicles(vehicleManager.getVehicles());
+                    loadVehicle(currentVehicle);
+                    showInfo("Reset Complete", "All stats reset to 10.0.");
+                }
+            });
         });
+        backBtn.setOnAction(e -> sceneManager.showDashboard());
     }
 
-    // Called by DashboardPanel before switching to this screen
     public void loadVehicle(Vehicle v) {
         currentVehicle = v;
         titleLabel.setText(v.getMake() + " " + v.getModel() + " — Health Report");
-
         double score = v.CalculateScore();
         scoreLabel.setText(String.format("%.1f / 100", score));
-        if (score >= 80)      scoreLabel.setForeground(new Color(26, 90, 26));
-        else if (score >= 60) scoreLabel.setForeground(new Color(150, 100, 0));
-        else                  scoreLabel.setForeground(new Color(139, 0, 0));
 
-        // Engine bar is 0–100, rest are 0–10 scaled to 0–100
+        if (score >= 80)
+            scoreLabel.setStyle("-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: " + Theme.SCORE_GREEN_FG + ";");
+        else if (score >= 60)
+            scoreLabel.setStyle("-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: " + Theme.SCORE_AMBER_FG + ";");
+        else
+            scoreLabel.setStyle("-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: " + Theme.SCORE_RED_FG + ";");
+
         setBar(engineBar, v.getEngine().getHealth(), 100);
         setBar(oilBar,    v.getOilLevel(),    10);
         setBar(airBar,    v.getAirPressure(), 10);
@@ -1718,501 +1747,451 @@ class VehicleDetailsPanel extends JPanel {
         setBar(suspBar,   v.getSuspension(),  10);
         setBar(brakesBar, v.getBrakes(),      10);
 
-        // Show chain bar only for Motorcycle
         if (v instanceof Motorcycle) {
-            Motorcycle m = (Motorcycle) v;
-            setBar(chainBar, m.getChainSprocketHealth(), 10);
-            chainRow.setVisible(true);
+            setBar(chainBar, ((Motorcycle) v).getChainSprocketHealth(), 10);
+            chainRow.setVisible(true); chainRow.setManaged(true);
         } else {
-            chainRow.setVisible(false);
+            chainRow.setVisible(false); chainRow.setManaged(false);
         }
 
-        // Generate Diagnosable report
-        if (v instanceof Diagnosable) {
-            Diagnosable d = (Diagnosable) v;
-            reportArea.setText(d.generateReport());
-        } else {
-            reportArea.setText("No report available.");
-        }
-        reportArea.setCaretPosition(0);
+        reportArea.setText(v instanceof Diagnosable ? ((Diagnosable) v).generateReport() : "No report available.");
+        reportArea.setScrollTop(0);
     }
 
-    // ---- Helpers ----
-    private void setBar(JProgressBar bar, double value, double max) {
-        int pct = (int) Math.round((value / max) * 100);
-        pct = Math.max(0, Math.min(100, pct));
-        bar.setValue(pct);
-        bar.setString(String.format("%.1f", value));
-        if (pct >= 70)      bar.setForeground(new Color(34, 139, 34));
-        else if (pct >= 40) bar.setForeground(new Color(210, 140, 0));
-        else                bar.setForeground(new Color(178, 34, 34));
+    private void setBar(ProgressBar bar, double value, double max) {
+        double pct = Math.max(0, Math.min(1.0, value / max));
+        bar.setProgress(pct);
+        if (pct >= 0.7)      bar.setStyle("-fx-accent: " + Theme.SCORE_GREEN_FG + ";");
+        else if (pct >= 0.4) bar.setStyle("-fx-accent: " + Theme.SCORE_AMBER_FG + ";");
+        else                 bar.setStyle("-fx-accent: " + Theme.SCORE_RED_FG   + ";");
     }
 
-    private JProgressBar makeBar() {
-        JProgressBar bar = new JProgressBar(0, 100);
-        bar.setStringPainted(true);
-        bar.setPreferredSize(new Dimension(160, 18));
+    private ProgressBar makeBar() {
+        ProgressBar bar = new ProgressBar(0);
+        bar.setPrefWidth(200);
+        bar.setPrefHeight(20);
         return bar;
     }
 
-    private JPanel makeBarRow(String label, JProgressBar bar, String range) {
-        JPanel row = new JPanel(new BorderLayout(8, 0));
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lbl.setPreferredSize(new Dimension(130, 18));
-        row.add(lbl, BorderLayout.WEST);
-        row.add(bar, BorderLayout.CENTER);
+    private HBox makeBarRow(String labelText, ProgressBar bar) {
+        Label lbl = new Label(labelText);
+        lbl.setPrefWidth(130);
+        lbl.setStyle("-fx-font-size: 13; -fx-text-fill: " + Theme.TEXT + ";");
+        HBox row = new HBox(10, lbl, bar);
+        row.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(bar, javafx.scene.layout.Priority.ALWAYS);
         return row;
     }
 
-    private JButton makeBtn(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
+    }
+
+    private void showInfo(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title); a.setContentText(msg); a.showAndWait();
     }
 }
 
-class TripPanel extends JPanel {
+class TripPanel extends BorderPane {
 
     private VehicleManager vehicleManager;
     private AdviceManager adviceManager;
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
+    private SceneManager sceneManager;
+    private ComboBox<String> vehicleCombo;
+    private TextField distanceField, loadField;
+    private ComboBox<String> terrainCombo;
+    private CheckBox hardBrakingBox, overspeedBox, aggressiveBox, longHoursBox;
+    private Label errorLabel;
 
-    private JComboBox<String> vehicleCombo;
-    private JTextField distanceField, loadField;
-    private JComboBox<String> terrainCombo;
+    TripPanel(SceneManager sceneManager, VehicleManager vehicleManager, AdviceManager adviceManager) {
+        this.sceneManager   = sceneManager;
+        this.vehicleManager = vehicleManager;
+        this.adviceManager  = adviceManager;
 
-    private JCheckBox hardBrakingBox, overspeedBox, aggressiveBox, longHoursBox;
-    private JLabel errorLabel;
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-    TripPanel(CardLayout cardLayout, JPanel mainPanel,
-              VehicleManager vehicleManager, AdviceManager adviceManager) {
+        BorderPane topBar = new BorderPane();
+        topBar.setStyle(Theme.NAV_STYLE);
+        Label title = new Label("Plan a Trip");
+        title.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 15; -fx-font-weight: bold;");
+        topBar.setLeft(title);
 
-        this.cardLayout      = cardLayout;
-        this.mainPanel       = mainPanel;
-        this.vehicleManager  = vehicleManager;
-        this.adviceManager   = adviceManager;
+        GridPane tripDetails = new GridPane();
+        tripDetails.setHgap(12); tripDetails.setVgap(12);
+        tripDetails.setPadding(new Insets(12));
+        tripDetails.setStyle("-fx-background-color: " + Theme.SURFACE + ";");
 
-        setLayout(new BorderLayout());
+        vehicleCombo  = new ComboBox<>();
+        distanceField = new TextField("500");
+        loadField     = new TextField("0");
+        terrainCombo  = new ComboBox<>(FXCollections.observableArrayList("City","Highway","Hilly","Off-road","Mixed"));
+        terrainCombo.setValue("City");
 
-        // ---- TOP BAR ----
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(60, 60, 140));
-        topBar.setBorder(new EmptyBorder(8, 14, 8, 14));
-        JLabel title = new JLabel("Plan a Trip");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 14));
-        topBar.add(title, BorderLayout.WEST);
+        vehicleCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        // ---- LEFT: TRIP DETAILS ----
-        JPanel tripDetails = new JPanel(new GridLayout(0, 2, 10, 8));
-        tripDetails.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Trip Details"),
-                new EmptyBorder(8, 10, 8, 10)
-        ));
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
 
-        vehicleCombo = new JComboBox<>();
-        distanceField = new JTextField("500");
-        loadField     = new JTextField("0");
-        terrainCombo  = new JComboBox<>(new String[]{"City", "Highway", "Hilly", "Off-road", "Mixed"});
+        vehicleCombo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        tripDetails.add(new JLabel("Select Vehicle:")); tripDetails.add(vehicleCombo);
-        tripDetails.add(new JLabel("Distance (km):"));  tripDetails.add(distanceField);
-        tripDetails.add(new JLabel("Load (kg):"));      tripDetails.add(loadField);
-        tripDetails.add(new JLabel("Terrain:"));        tripDetails.add(terrainCombo);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-background-color: " + Theme.NAV + ";");
+                }
+            }
+        });
 
-        // ---- RIGHT: DRIVER BEHAVIOR ----
-        JPanel behaviorPanel = new JPanel();
-        behaviorPanel.setLayout(new BoxLayout(behaviorPanel, BoxLayout.Y_AXIS));
-        behaviorPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Driver Behavior"),
-                new EmptyBorder(8, 10, 8, 10)
-        ));
+        terrainCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        JLabel hint = new JLabel("Check all that apply to your driving:");
-        hint.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        hint.setForeground(Color.GRAY);
-        hint.setAlignmentX(Component.LEFT_ALIGNMENT);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
 
-        hardBrakingBox = new JCheckBox("Hard Braking");
-        overspeedBox   = new JCheckBox("Overspeeding");
-        aggressiveBox  = new JCheckBox("Aggressive Driving");
-        longHoursBox   = new JCheckBox("Long Driving Hours (4+ hrs)");
+        terrainCombo.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
 
-        for (JCheckBox cb : new JCheckBox[]{hardBrakingBox, overspeedBox, aggressiveBox, longHoursBox}) {
-            cb.setFont(new Font("SansSerif", Font.PLAIN, 13));
-            cb.setAlignmentX(Component.LEFT_ALIGNMENT);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-background-color: " + Theme.NAV + ";");
+                }
+            }
+        });
+
+        for (javafx.scene.control.Control c : new javafx.scene.control.Control[]{vehicleCombo, distanceField, loadField, terrainCombo}) {
+            c.setMaxWidth(Double.MAX_VALUE);
+            c.setStyle(Theme.INPUT_STYLE);
         }
 
-        behaviorPanel.add(hint);
-        behaviorPanel.add(Box.createVerticalStrut(8));
-        behaviorPanel.add(hardBrakingBox);
-        behaviorPanel.add(Box.createVerticalStrut(4));
-        behaviorPanel.add(overspeedBox);
-        behaviorPanel.add(Box.createVerticalStrut(4));
-        behaviorPanel.add(aggressiveBox);
-        behaviorPanel.add(Box.createVerticalStrut(4));
-        behaviorPanel.add(longHoursBox);
+        String[] tripLabels = {"Select Vehicle:", "Distance (km):", "Load (kg):", "Terrain:"};
+        javafx.scene.Node[] tripControls = {vehicleCombo, distanceField, loadField, terrainCombo};
+        for (int i = 0; i < tripLabels.length; i++) {
+            Label lbl = new Label(tripLabels[i]);
+            lbl.setStyle(Theme.LABEL_STYLE);
+            tripDetails.add(lbl, 0, i);
+            tripDetails.add(tripControls[i], 1, i);
+            GridPane.setHgrow(tripControls[i], javafx.scene.layout.Priority.ALWAYS);
+        }
 
-        // ---- CENTER ROW ----
-        JPanel centerRow = new JPanel(new GridLayout(1, 2, 14, 0));
-        centerRow.setBorder(new EmptyBorder(12, 14, 4, 14));
-        centerRow.add(tripDetails);
-        centerRow.add(behaviorPanel);
+        Label tripTitle = new Label("TRIP DETAILS");
+        tripTitle.setStyle(Theme.sectionLabel());
+        VBox tripBox = new VBox(8, tripTitle, tripDetails);
+        tripBox.setPadding(new Insets(12));
+        tripBox.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 6;" +
+            "-fx-background-radius: 6;"
+        );
 
-        // ---- BUTTONS ----
-        errorLabel = new JLabel(" ");
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        hardBrakingBox = new CheckBox("Hard Braking");
+        overspeedBox   = new CheckBox("Overspeeding");
+        aggressiveBox  = new CheckBox("Aggressive Driving");
+        longHoursBox   = new CheckBox("Long Driving Hours (4+ hrs)");
 
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
-        JButton adviceBtn = makeBtn("Get Advice →", new Color(34, 122, 34));
-        JButton cancelBtn = makeBtn("Cancel",        Color.GRAY);
-        btnRow.add(adviceBtn); btnRow.add(cancelBtn); btnRow.add(errorLabel);
+        for (CheckBox cb : new CheckBox[]{hardBrakingBox, overspeedBox, aggressiveBox, longHoursBox}) {
+            cb.setStyle("-fx-font-size: 13; -fx-text-fill: " + Theme.TEXT + ";");
+        }
 
-        // ---- ASSEMBLE ----
-        JPanel bottom = new JPanel(new BorderLayout());
-        bottom.add(btnRow, BorderLayout.CENTER);
+        Label hint = new Label("Check all that apply to your driving:");
+        hint.setStyle("-fx-font-size: 12; -fx-text-fill: " + Theme.MUTED + ";");
 
-        add(topBar,    BorderLayout.NORTH);
-        add(centerRow, BorderLayout.CENTER);
-        add(bottom,    BorderLayout.SOUTH);
+        Label behaviorTitle = new Label("DRIVER BEHAVIOR");
+        behaviorTitle.setStyle(Theme.sectionLabel());
 
-        // ---- ACTIONS ----
-        adviceBtn.addActionListener(e -> {
+        VBox behaviorBox = new VBox(10, hint, hardBrakingBox, overspeedBox, aggressiveBox, longHoursBox);
+        behaviorBox.setPadding(new Insets(12));
+        behaviorBox.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 6;" +
+            "-fx-background-radius: 6;"
+        );
+        VBox behaviorSection = new VBox(8, behaviorTitle, behaviorBox);
+        behaviorSection.setPadding(new Insets(12));
+        behaviorSection.setStyle("-fx-background-color: " + Theme.BASE + ";");
+
+        HBox centerRow = new HBox(14, tripBox, behaviorSection);
+        centerRow.setPadding(new Insets(14));
+        centerRow.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        HBox.setHgrow(tripBox, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(behaviorSection, javafx.scene.layout.Priority.ALWAYS);
+
+        errorLabel = new Label(" ");
+        errorLabel.setStyle("-fx-text-fill: #f87171; -fx-font-size: 12;");
+
+        Button adviceBtn = makeBtn("Get Advice →", Theme.GREEN,  Theme.GREEN_TEXT);
+        Button cancelBtn = makeBtn("Cancel",         Theme.CARD,   Theme.MUTED);
+        HBox btnRow = new HBox(10, adviceBtn, cancelBtn, errorLabel);
+        btnRow.setPadding(new Insets(10, 14, 10, 14));
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+        btnRow.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1 0 0 0;"
+        );
+
+        setTop(topBar); setCenter(centerRow); setBottom(btnRow);
+        refreshVehicleList();
+
+        adviceBtn.setOnAction(e -> {
             errorLabel.setText(" ");
-
-            if (vehicleCombo.getSelectedIndex() < 0 || vehicleManager.getVehicles().isEmpty()) {
-                errorLabel.setText("Please select a vehicle.");
-                return;
+            if (vehicleCombo.getSelectionModel().getSelectedIndex() < 0 || vehicleManager.getVehicles().isEmpty()) {
+                errorLabel.setText("Please select a vehicle."); return;
             }
-
             try {
                 double distance = Double.parseDouble(distanceField.getText().trim());
                 double load     = Double.parseDouble(loadField.getText().trim());
-
                 if (distance <= 0) { errorLabel.setText("Distance must be greater than 0."); return; }
-
-                Vehicle selected = vehicleManager.getVehicles().get(vehicleCombo.getSelectedIndex());
-                String  terrain  = (String) terrainCombo.getSelectedItem();
-
-                DriverBehavior db = new DriverBehavior(
-                        hardBrakingBox.isSelected(),
-                        overspeedBox.isSelected(),
-                        aggressiveBox.isSelected(),
-                        longHoursBox.isSelected()
-                );
-
-                Trip trip = new Trip(distance, terrain, load, selected, db);
-
-                // Pass trip to AdvicePanel and switch
-                AdvicePanel ap = (AdvicePanel) mainPanel.getComponent(6);
-                ap.loadAdvice(trip, adviceManager);
-                cardLayout.show(mainPanel, "ADVICE");
-
+                Vehicle selected = vehicleManager.getVehicles().get(vehicleCombo.getSelectionModel().getSelectedIndex());
+                DriverBehavior db = new DriverBehavior(hardBrakingBox.isSelected(), overspeedBox.isSelected(), aggressiveBox.isSelected(), longHoursBox.isSelected());
+                sceneManager.showAdvice(new Trip(distance, terrainCombo.getValue(), load, selected, db));
             } catch (NumberFormatException ex) {
                 errorLabel.setText("Please enter valid numbers for distance and load.");
             }
         });
-
-        cancelBtn.addActionListener(e -> cardLayout.show(mainPanel, "DASHBOARD"));
+        cancelBtn.setOnAction(e -> sceneManager.showDashboard());
     }
 
-    // Called each time TripPanel becomes visible
     public void refreshVehicleList() {
-        vehicleCombo.removeAllItems();
-        ArrayList<Vehicle> vehicles = vehicleManager.getVehicles();
-        for (Vehicle v : vehicles) {
+        vehicleCombo.getItems().clear();
+        for (Vehicle v : vehicleManager.getVehicles()) {
             String type = v instanceof Car ? "Car" : v instanceof Motorcycle ? "Bike" : "Truck";
-            vehicleCombo.addItem(v.getMake() + " " + v.getModel() + " (" + type + ")");
+            vehicleCombo.getItems().add(v.getMake() + " " + v.getModel() + " (" + type + ")");
         }
-        // Reset checkboxes
-        hardBrakingBox.setSelected(false);
-        overspeedBox.setSelected(false);
-        aggressiveBox.setSelected(false);
-        longHoursBox.setSelected(false);
+        hardBrakingBox.setSelected(false); overspeedBox.setSelected(false);
+        aggressiveBox.setSelected(false);  longHoursBox.setSelected(false);
     }
 
-    private JButton makeBtn(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
     }
 }
 
-class AdvicePanel extends JPanel {
+class AdvicePanel extends BorderPane {
 
-    private Trip currentTrip;
-    private WearManager wearManager = new WearManager();
-    private VehicleManager vehicleManager;
     private FileManager fileManager;
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
-
-    private JLabel scoreLabel;
-    private JLabel vehicleNameLabel;
-    private JLabel tripInfoLabel;
-    private JTextArea vehicleAdviceArea;
-    private JTextArea behaviorArea;
+    private VehicleManager vehicleManager;
+    private SceneManager sceneManager;
+    private AdviceManager adviceManager;
+    private WearManager wearManager = new WearManager();
+    private Trip currentTrip;
     private String fullReport = "";
+    private Label scoreLabel, vehicleNameLabel, tripInfoLabel;
+    private TextArea vehicleAdviceArea, behaviorArea;
+    private Button completeBtn;
 
-    private JButton completeBtn;
+    AdvicePanel(SceneManager sceneManager, FileManager fileManager, VehicleManager vehicleManager) {
+        this.sceneManager  = sceneManager;
+        this.fileManager   = fileManager;
+        this.vehicleManager= vehicleManager;
 
-    AdvicePanel(CardLayout cardLayout, JPanel mainPanel, FileManager fileManager, VehicleManager vehicleManager) {
-        this.cardLayout  = cardLayout;
-        this.mainPanel   = mainPanel;
-        this.fileManager = fileManager;
-        this.vehicleManager = vehicleManager;
+        setStyle("-fx-background-color: " + Theme.BASE + ";");
+        setPrefSize(780, 540);
 
-        setLayout(new BorderLayout());
+        BorderPane topBar = new BorderPane();
+        topBar.setStyle(Theme.NAV_STYLE);
+        Label title = new Label("Trip Advice");
+        title.setStyle("-fx-text-fill: " + Theme.TEXT + "; -fx-font-size: 15; -fx-font-weight: bold;");
+        topBar.setLeft(title);
 
-        // ---- TOP BAR ----
-        JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(60, 60, 140));
-        topBar.setBorder(new EmptyBorder(8, 14, 8, 14));
-        JLabel title = new JLabel("Trip Advice");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("SansSerif", Font.BOLD, 14));
-        topBar.add(title, BorderLayout.WEST);
+        scoreLabel = new Label("--/100");
+        scoreLabel.setStyle(
+            "-fx-font-size: 34; -fx-font-weight: bold; -fx-text-fill: " + Theme.TEXT + ";" +
+            "-fx-border-color: " + Theme.BORDER + "; -fx-border-width: 1; -fx-border-radius: 8;" +
+            "-fx-background-color: " + Theme.CARD + "; -fx-background-radius: 8;" +
+            "-fx-alignment: center;"
+        );
+        scoreLabel.setPrefSize(120, 64);
+        scoreLabel.setAlignment(Pos.CENTER);
 
-        // ---- SCORE HEADER ----
-        JPanel scorePanel = new JPanel(new BorderLayout(14, 0));
-        scorePanel.setBorder(new EmptyBorder(12, 16, 6, 16));
+        vehicleNameLabel = new Label("--");
+        vehicleNameLabel.setStyle("-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: " + Theme.TEXT + ";");
+        tripInfoLabel = new Label("--");
+        tripInfoLabel.setStyle("-fx-font-size: 12; -fx-text-fill: " + Theme.MUTED + ";");
 
-        scoreLabel = new JLabel("--/100", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 36));
-        scoreLabel.setPreferredSize(new Dimension(120, 60));
-        scoreLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        VBox infoRight = new VBox(6, vehicleNameLabel, tripInfoLabel);
+        infoRight.setAlignment(Pos.CENTER_LEFT);
 
-        JPanel infoRight = new JPanel();
-        infoRight.setLayout(new BoxLayout(infoRight, BoxLayout.Y_AXIS));
-        vehicleNameLabel = new JLabel("--");
-        vehicleNameLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
-        tripInfoLabel = new JLabel("--");
-        tripInfoLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        tripInfoLabel.setForeground(Color.GRAY);
-        infoRight.add(vehicleNameLabel);
-        infoRight.add(Box.createVerticalStrut(4));
-        infoRight.add(tripInfoLabel);
+        HBox scoreHeader = new HBox(16, scoreLabel, infoRight);
+        scoreHeader.setAlignment(Pos.CENTER_LEFT);
+        scoreHeader.setPadding(new Insets(12, 16, 12, 16));
+        // FIX 6: header background is dark blue not white
+        scoreHeader.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 0 0 1 0;"
+        );
 
-        scorePanel.add(scoreLabel,  BorderLayout.WEST);
-        scorePanel.add(infoRight,   BorderLayout.CENTER);
+        vehicleAdviceArea = makeTextArea();
+        behaviorArea      = makeTextArea();
 
-        // ---- ADVICE AREAS ----
-        vehicleAdviceArea = makeTextArea(new Color(255, 250, 240));
-        behaviorArea      = makeTextArea(new Color(255, 245, 245));
+        Label vTitle = new Label("VEHICLE ADVICE");
+        vTitle.setStyle(Theme.sectionLabel());
+        VBox vehicleSection = new VBox(6, vTitle, vehicleAdviceArea);
+        vehicleSection.setPadding(new Insets(10));
+        vehicleSection.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        VBox.setVgrow(vehicleAdviceArea, javafx.scene.layout.Priority.ALWAYS);
 
-        JScrollPane vehicleScroll = new JScrollPane(vehicleAdviceArea);
-        vehicleScroll.setBorder(BorderFactory.createTitledBorder("Vehicle Advice"));
+        Label bTitle = new Label("DRIVER BEHAVIOR WARNINGS");
+        bTitle.setStyle(Theme.sectionLabel());
+        VBox behaviorSection = new VBox(6, bTitle, behaviorArea);
+        behaviorSection.setPadding(new Insets(10));
+        behaviorSection.setStyle("-fx-background-color: " + Theme.BASE + ";");
+        VBox.setVgrow(behaviorArea, javafx.scene.layout.Priority.ALWAYS);
 
-        JScrollPane behaviorScroll = new JScrollPane(behaviorArea);
-        behaviorScroll.setBorder(BorderFactory.createTitledBorder("Driver Behavior Warnings"));
+        SplitPane split = new SplitPane(vehicleSection, behaviorSection);
+        split.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        split.setDividerPositions(0.5);
+        split.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, vehicleScroll, behaviorScroll);
-        split.setDividerLocation(140);
-        split.setResizeWeight(0.5);
+        // BUTTONS
+        Button saveBtn  = makeBtn("Save Report (.txt)", Theme.ACCENT,  "#ffffff");
+        Button tripBtn  = makeBtn("New Trip",            Theme.GREEN,   Theme.GREEN_TEXT);
+        Button dashBtn  = makeBtn("Dashboard",           Theme.CARD,    Theme.MUTED);
+        completeBtn     = makeBtn("Complete Trip ✓",     Theme.PURPLE,  Theme.PURPLE_TEXT);
 
-        // ---- BUTTONS ----
-        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        JButton saveBtn  = makeBtn("Save Report (.txt)", new Color(60, 60, 140));
-        JButton tripBtn  = makeBtn("New Trip",           new Color(34, 122, 34));
-        JButton dashBtn  = makeBtn("Dashboard",          Color.GRAY);
-        completeBtn = makeBtn("Complete Trip ✓", new Color(150, 50, 150));
+        HBox btnRow = new HBox(10, saveBtn, tripBtn, dashBtn, completeBtn);
+        btnRow.setPadding(new Insets(10, 12, 10, 12));
+        btnRow.setStyle(
+            "-fx-background-color: " + Theme.SURFACE + ";" +
+            "-fx-border-color: " + Theme.BORDER + ";" +
+            "-fx-border-width: 1 0 0 0;"
+        );
 
-        btnRow.add(saveBtn);
-        btnRow.add(tripBtn);
-        btnRow.add(dashBtn);
-        btnRow.add(completeBtn);
+        VBox centerArea = new VBox(scoreHeader, split);
+        VBox.setVgrow(split, javafx.scene.layout.Priority.ALWAYS);
+        centerArea.setStyle("-fx-background-color: " + Theme.BASE + ";");
 
+        setTop(topBar); setCenter(centerArea); setBottom(btnRow);
 
-        // ---- ASSEMBLE ----
-        JPanel centerArea = new JPanel(new BorderLayout());
-        centerArea.setBorder(new EmptyBorder(0, 10, 0, 10));
-        centerArea.add(split, BorderLayout.CENTER);
-
-        add(topBar,     BorderLayout.NORTH);
-        add(scorePanel, BorderLayout.CENTER);
-
-        JPanel mainCenter = new JPanel(new BorderLayout());
-        mainCenter.add(scorePanel,  BorderLayout.NORTH);
-        mainCenter.add(centerArea,  BorderLayout.CENTER);
-        mainCenter.add(btnRow,      BorderLayout.SOUTH);
-
-        // Replace center
-        remove(scorePanel);
-        add(mainCenter, BorderLayout.CENTER);
-
-        // ---- ACTIONS ----
-        saveBtn.addActionListener(e -> {
+        saveBtn.setOnAction(e -> {
             if (fullReport.isEmpty()) return;
-            JFileChooser chooser = new JFileChooser();
-            chooser.setSelectedFile(new java.io.File("trip_report.txt"));
-            int result = chooser.showSaveDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                String path = chooser.getSelectedFile().getAbsolutePath();
-                fileManager.saveReport(fullReport, path);
-                JOptionPane.showMessageDialog(this, "Report saved to:\n" + path, "Saved", JOptionPane.INFORMATION_MESSAGE);
-            }
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setInitialFileName("trip_report.txt");
+            java.io.File file = chooser.showSaveDialog(getScene().getWindow());
+            if (file != null) { fileManager.saveReport(fullReport, file.getAbsolutePath()); showInfo("Saved", "Report saved to:\n" + file.getAbsolutePath()); }
         });
-
-        tripBtn.addActionListener(e -> {
-            TripPanel tp = (TripPanel) mainPanel.getComponent(5);
-            tp.refreshVehicleList();
-            cardLayout.show(mainPanel, "TRIP");
-        });
-
-        dashBtn.addActionListener(e -> {
-            DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-            dash.refresh();
-            cardLayout.show(mainPanel, "DASHBOARD");
-        });
-
-        completeBtn.addActionListener(e -> {
+        tripBtn.setOnAction(e -> sceneManager.showTrip());
+        dashBtn.setOnAction(e -> sceneManager.showDashboard());
+        completeBtn.setOnAction(e -> {
             if (currentTrip == null) return;
-
-            // Save old values for summary
             Vehicle v       = currentTrip.getVehicle();
-            double oldTyre  = v.getTyres();
-            double oldSusp  = v.getSuspension();
-            double oldBrake = v.getBrakes();
-            double oldOil   = v.getOilLevel();
+            double oldTyre  = v.getTyres(), oldSusp = v.getSuspension();
+            double oldBrake = v.getBrakes(), oldOil = v.getOilLevel();
             int    oldEng   = v.getEngine().getHealth();
-
-            // Apply wear
             wearManager.applyWear(currentTrip);
-
-            // Save updated vehicle stats to file
             fileManager.saveVehicles(vehicleManager.getVehicles());
-
-            // Show wear summary in a popup
-            String summary = wearManager.getWearSummary(v, oldTyre, oldSusp, oldBrake, oldOil, oldEng);
-            JOptionPane.showMessageDialog(this, summary, "Trip Complete — Wear Applied", JOptionPane.INFORMATION_MESSAGE);
-
-            // Disable button so user can't apply twice
-            completeBtn.setEnabled(false);
-
-            // Go to dashboard so user sees updated scores
-            DashboardPanel dash = (DashboardPanel) mainPanel.getComponent(2);
-            dash.refresh();
-            cardLayout.show(mainPanel, "DASHBOARD");
+            showInfo("Trip Complete — Wear Applied", wearManager.getWearSummary(v, oldTyre, oldSusp, oldBrake, oldOil, oldEng));
+            completeBtn.setDisable(true);
+            sceneManager.showDashboard();
         });
     }
 
-    // Called by TripPanel before switching to this screen
     public void loadAdvice(Trip trip, AdviceManager am) {
-        this.currentTrip = trip;
+        this.currentTrip  = trip;
+        this.adviceManager= am;
         double score = trip.getVehicle().CalculateScore();
 
-        // Score label + color
         scoreLabel.setText(String.format("%.1f/100", score));
-        if (score >= 80)      scoreLabel.setForeground(new Color(26, 90, 26));
-        else if (score >= 60) scoreLabel.setForeground(new Color(150, 100, 0));
-        else                  scoreLabel.setForeground(new Color(139, 0, 0));
+        String scoreColor = score >= 80 ? Theme.SCORE_GREEN_FG : score >= 60 ? Theme.SCORE_AMBER_FG : Theme.SCORE_RED_FG;
+        scoreLabel.setStyle(
+            "-fx-font-size: 34; -fx-font-weight: bold;" +
+            "-fx-text-fill: " + scoreColor + ";" +
+            "-fx-border-color: " + Theme.BORDER + "; -fx-border-width: 1; -fx-border-radius: 8;" +
+            "-fx-background-color: " + Theme.CARD + "; -fx-background-radius: 8;" +
+            "-fx-alignment: center;"
+        );
 
-        // Vehicle + trip info
         vehicleNameLabel.setText(trip.getVehicle().getMake() + " " + trip.getVehicle().getModel());
         tripInfoLabel.setText(trip.getDistance() + " km · " + trip.getTerrain() + " terrain · Load: " + trip.getLoad() + " kg");
-
-        // Advice text
         vehicleAdviceArea.setText(am.getScoreAdvice(score));
         behaviorArea.setText(am.getBehaviorWarnings(trip.getDriverBehavior()));
-
-        // Build full report for saving
         fullReport = am.getSummaryReport(trip);
-
-        vehicleAdviceArea.setCaretPosition(0);
-        behaviorArea.setCaretPosition(0);
-
-        completeBtn.setEnabled(true);
+        vehicleAdviceArea.setScrollTop(0);
+        behaviorArea.setScrollTop(0);
+        completeBtn.setDisable(false);
     }
 
-    private JTextArea makeTextArea(Color bg) {
-        JTextArea area = new JTextArea();
+    private TextArea makeTextArea() {
+        TextArea area = new TextArea();
         area.setEditable(false);
-        area.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setBackground(bg);
-        area.setBorder(new EmptyBorder(8, 10, 8, 10));
+        area.setFont(Font.font("SansSerif", 13));
+        area.setWrapText(true);
+        area.setStyle(
+            "-fx-control-inner-background: " + Theme.CARD + ";" +
+            "-fx-background-color: " + Theme.CARD + ";" +
+            "-fx-text-fill: " + Theme.TEXT + ";" +
+            "-fx-font-size: 13;"
+        );
         return area;
     }
 
-    private JButton makeBtn(String text, Color bg) {
-        JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    private Button makeBtn(String text, String bg, String fg) {
+        Button btn = new Button(text);
+        btn.setStyle(Theme.btn(bg, fg));
         return btn;
+    }
+
+    private void showInfo(String title, String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title); a.setContentText(msg); a.showAndWait();
     }
 }
 
-public class OOP_Final_Project {
-    public static void main(String[] args) {
+public class OOP_Final_Project extends Application {
+    public static void main(String[] args) { launch(args); }
 
-        // ---- Create all shared manager objects (created ONCE, passed everywhere) ----
+    @Override
+    public void start(Stage stage) {
         VehicleManager vehicleManager = new VehicleManager();
         LoginManager   loginManager   = new LoginManager();
         FileManager    fileManager    = new FileManager();
         AdviceManager  adviceManager  = new AdviceManager();
 
-        // ---- Load saved data on startup ----
-        ArrayList<User> savedUsers = fileManager.loadUsers();
-        loginManager.setUsers(savedUsers);
+        loginManager.setUsers(fileManager.loadUsers());
+        for (Vehicle v : fileManager.loadVehicles()) vehicleManager.addVehicle(v);
 
-        ArrayList<Vehicle> savedVehicles = fileManager.loadVehicles();
-        for (Vehicle v : savedVehicles) {
-            vehicleManager.addVehicle(v);
-        }
+        stage.setTitle("MotoMetrics — Vehicle Wear & Tear Simulation");
+        stage.setResizable(false);
 
-        // ---- Build UI on Event Dispatch Thread ----
-        SwingUtilities.invokeLater(() -> {
-
-            JFrame frame = new JFrame("MotoMetrics — Vehicle Wear & Tear Simulation");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(780, 540);
-            frame.setLocationRelativeTo(null); // center on screen
-
-            // ---- CardLayout — one container, multiple panels ----
-            CardLayout cardLayout = new CardLayout();
-            JPanel mainPanel = new JPanel(cardLayout);
-
-            // ---- Create all panels ----
-            // NOTE: Order matters — DashboardPanel uses getComponent(2),
-            //       VehicleDetailsPanel uses getComponent(4),
-            //       TripPanel uses getComponent(5), AdvicePanel uses getComponent(6)
-
-            LoginPanel         loginPanel   = new LoginPanel(cardLayout, mainPanel, loginManager, fileManager);
-            RegisterPanel      registerPanel= new RegisterPanel(cardLayout, mainPanel, loginManager, fileManager);
-            DashboardPanel     dashPanel    = new DashboardPanel(cardLayout, mainPanel, vehicleManager, loginManager, fileManager);
-            AddVehiclePanel    addPanel     = new AddVehiclePanel(cardLayout, mainPanel, vehicleManager, fileManager);
-            VehicleDetailsPanel detailPanel = new VehicleDetailsPanel(cardLayout, mainPanel, fileManager, vehicleManager);            TripPanel          tripPanel    = new TripPanel(cardLayout, mainPanel, vehicleManager, adviceManager);
-            AdvicePanel advicePanel = new AdvicePanel(cardLayout, mainPanel, fileManager, vehicleManager);
-
-            // ---- Register panels (index order MUST match getComponent() calls above) ----
-            mainPanel.add(loginPanel,    "LOGIN");          // index 0
-            mainPanel.add(registerPanel, "REGISTER");       // index 1
-            mainPanel.add(dashPanel,     "DASHBOARD");      // index 2
-            mainPanel.add(addPanel,      "ADD_VEHICLE");    // index 3
-            mainPanel.add(detailPanel,   "VEHICLE_DETAILS");// index 4
-            mainPanel.add(tripPanel,     "TRIP");           // index 5
-            mainPanel.add(advicePanel,   "ADVICE");         // index 6
-
-            // ---- Start at Login ----
-            cardLayout.show(mainPanel, "LOGIN");
-
-            frame.add(mainPanel);
-            frame.setVisible(true);
-        });
+        SceneManager sceneManager = new SceneManager(stage, loginManager, vehicleManager, fileManager, adviceManager);
+        sceneManager.showSplash();
+        stage.show();
     }
 }
